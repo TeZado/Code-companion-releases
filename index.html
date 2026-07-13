@@ -497,6 +497,13 @@
         <a href="#" class="btn" data-os="win">Windows · .exe</a>
         <a href="#" class="btn" data-os="linux" onclick="showLinuxModal(event)">Linux · .AppImage / .deb</a>
       </div>
+      <div id="mac-command" class="mac-command-section desktop-only" style="display: none; flex-direction: column; align-items: center; margin-top: 32px;">
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 12px;">Run this command to run our app on macOS:</p>
+        <div style="display: flex; align-items: center; gap: 8px; background: var(--surface); padding: 8px 8px 8px 16px; border-radius: 12px; border: 1px solid var(--line-strong); max-width: 100%;">
+          <code id="mac-cmd-text" style="font-family: var(--font-mono); font-size: 13px; color: var(--text); white-space: nowrap; overflow-x: auto;">xattr -d com.apple.quarantine /path/to/Code-Companion.dmg</code>
+          <button onclick="copyMacCommand(this)" class="btn" style="padding: 6px 12px; font-size: 12px; border-radius: 8px;">Copy</button>
+        </div>
+      </div>
       <div class="mobile-only" style="justify-content:center; margin-top:20px;">
         <div class="btn" style="opacity:0.6; cursor:not-allowed;">Not available on mobile</div>
       </div>
@@ -535,6 +542,17 @@
   }
   function closeLinuxModal() {
     document.getElementById('linux-modal').classList.remove('active');
+  }
+
+  function copyMacCommand(btn) {
+    const text = document.getElementById('mac-cmd-text').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      const originalText = btn.innerText;
+      btn.innerText = 'Copied!';
+      setTimeout(() => { btn.innerText = originalText; }, 2000);
+    }).catch(err => {
+      console.error('Failed to copy', err);
+    });
   }
 
   // Detect OS for Download button
@@ -618,6 +636,18 @@
           btn.href = downloadLinks[btnOs];
         }
       });
+      
+      if (os === 'mac') {
+        const macCmd = document.getElementById('mac-command');
+        if (macCmd) {
+          macCmd.style.display = 'flex';
+          const cmdText = document.getElementById('mac-cmd-text');
+          if (cmdText) {
+             // Make the path contextually relevant to the downloaded version
+             cmdText.innerText = `xattr -d com.apple.quarantine ~/Downloads/Code-Companion-${vNumber}.dmg`;
+          }
+        }
+      }
     }
   }
   
