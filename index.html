@@ -256,7 +256,12 @@
     width: 24px; height: 24px; border-radius: 50%; object-fit: cover;
   }
 
+  .mobile-only { display: none; }
+  .desktop-only { display: flex; }
+
   @media (max-width:760px){
+    .desktop-only { display: none !important; }
+    .mobile-only { display: flex !important; }
     .feature-row{ grid-template-columns:1fr; padding-left:44px; }
     .section-head{ padding-left:44px; }
     .rail-line, .rail-pulse, .rail-pulse-dot{ left:calc(32px + 1px); }
@@ -289,7 +294,7 @@
       <a href="#features">Features</a>
       <a href="#security">Security</a>
     </div>
-    <a href="#download" class="btn btn-primary" id="header-btn">Download</a>
+    <a href="#download" class="btn btn-primary desktop-only" id="header-btn">Download</a>
   </div>
 </header>
 
@@ -298,25 +303,28 @@
     <div class="eyebrow"><span class="dot"></span> Cross-platform · Electron desktop app</div>
     <h1>The ultimate<br><span>Git companion</span></h1>
     <p class="lede">A visually stunning desktop app that reimagines the Git and GitHub workflow — live branch graphs, real-time push notifications, and an inline three-way merge editor, all in one place.</p>
-    <div class="hero-actions">
+    <div class="hero-actions desktop-only">
       <a href="#download" class="btn btn-primary" id="hero-btn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
         Download
       </a>
     </div>
-    <div class="platform-row">
-      <div class="platform-chip" data-os="mac">
+    <div class="hero-actions mobile-only">
+      <div class="btn" style="opacity:0.6; cursor:not-allowed;">Not available on mobile</div>
+    </div>
+    <div class="platform-row desktop-only">
+      <a href="#" class="platform-chip" data-os="mac">
         <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M17.5 12.5c0-2.2 1.8-3.3 1.9-3.4-1-1.5-2.6-1.7-3.2-1.7-1.4-.1-2.6.8-3.3.8-.7 0-1.7-.8-2.9-.8-1.5 0-2.9.9-3.6 2.2-1.6 2.7-.4 6.7 1.1 8.9.7 1.1 1.6 2.3 2.8 2.3 1.1 0 1.5-.7 2.9-.7s1.7.7 2.9.7c1.2 0 2-1.1 2.7-2.2.6-.9.9-1.7.9-1.8-.1 0-2.2-.8-2.2-3.3Z"/><path d="M14.8 5.4c.5-.7.9-1.6.8-2.5-.8 0-1.8.5-2.4 1.2-.5.6-1 1.6-.8 2.4.9.1 1.8-.5 2.4-1.1Z"/></svg>
         <div><div class="pname">macOS</div>.dmg</div>
-      </div>
-      <div class="platform-chip" data-os="win">
+      </a>
+      <a href="#" class="platform-chip" data-os="win">
         <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M8 21h8M12 17v4"/></svg>
         <div><div class="pname">Windows</div>.exe</div>
-      </div>
-      <div class="platform-chip" data-os="linux">
+      </a>
+      <a href="#" class="platform-chip" data-os="linux">
         <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m8 8-4 4 4 4M16 8l4 4-4 4"/></svg>
         <div><div class="pname">Linux</div>.AppImage</div>
-      </div>
+      </a>
     </div>
   </section>
 </main>
@@ -415,11 +423,14 @@
     <div class="cta-card">
       <div class="cta-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#18160F" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></div>
       <h3>Ready to deploy</h3>
-      <p>Download for your platform to get started.</p>
-      <div class="cta-platforms">
-        <a href="https://github.com/TeZado/Code-companion/releases/latest" class="btn" data-os="mac">macOS · .dmg</a>
-        <a href="https://github.com/TeZado/Code-companion/releases/latest" class="btn" data-os="win">Windows · .exe</a>
-        <a href="https://github.com/TeZado/Code-companion/releases/latest" class="btn" data-os="linux">Linux · .AppImage</a>
+      <p class="desktop-only" style="justify-content:center;">Download for your platform to get started.</p>
+      <div class="cta-platforms desktop-only">
+        <a href="#" class="btn" data-os="mac">macOS · .dmg</a>
+        <a href="#" class="btn" data-os="win">Windows · .exe</a>
+        <a href="#" class="btn" data-os="linux">Linux · .AppImage</a>
+      </div>
+      <div class="mobile-only" style="justify-content:center; margin-top:20px;">
+        <div class="btn" style="opacity:0.6; cursor:not-allowed;">Not available on mobile</div>
       </div>
     </div>
   </div>
@@ -479,11 +490,14 @@
         heroBtn.href = downloadLinks[os];
       }
 
-      // Highlight current OS chip
+      // Highlight current OS chip and set links for all chips
       document.querySelectorAll('.platform-chip').forEach(chip => {
         if (chip.dataset.os === os) {
           chip.style.borderColor = "var(--terracotta)";
           chip.style.background = "var(--surface-2)";
+        }
+        if (downloadLinks[chip.dataset.os]) {
+          chip.href = downloadLinks[chip.dataset.os];
         }
       });
 
