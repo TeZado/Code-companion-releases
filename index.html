@@ -308,6 +308,23 @@
   .mobile-only { display: none; }
   .desktop-only { display: flex; }
 
+  /* ---------- Modal ---------- */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+    z-index: 100; display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+  }
+  .modal-overlay.active { opacity: 1; pointer-events: auto; }
+  .modal-content {
+    background: var(--surface); border: 1px solid var(--line-strong); border-radius: 20px;
+    padding: 40px; max-width: 440px; width: 90%; text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4); transform: translateY(20px); transition: transform 0.3s ease;
+  }
+  .modal-overlay.active .modal-content { transform: translateY(0); }
+  .modal-content h3 { font-family: var(--font-display); font-size: 24px; margin-bottom: 12px; }
+  .modal-content p { color: var(--text-muted); margin-bottom: 28px; font-size: 14px; line-height: 1.5; }
+  .modal-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
   @media (max-width:760px){
     .desktop-only { display: none !important; }
     .mobile-only { display: flex !important; }
@@ -372,13 +389,9 @@
         <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M8 21h8M12 17v4"/></svg>
         <div><div class="pname">Windows</div>.exe</div>
       </a>
-      <a href="#" class="platform-chip" data-os="linux-appimage">
+      <a href="#" class="platform-chip" data-os="linux" onclick="showLinuxModal(event)">
         <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m8 8-4 4 4 4M16 8l4 4-4 4"/></svg>
-        <div><div class="pname">Linux</div>.AppImage</div>
-      </a>
-      <a href="#" class="platform-chip" data-os="linux-deb">
-        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m8 8-4 4 4 4M16 8l4 4-4 4"/></svg>
-        <div><div class="pname">Linux</div>.deb</div>
+        <div><div class="pname">Linux</div>.AppImage / .deb</div>
       </a>
     </div>
   </section>
@@ -482,8 +495,7 @@
       <div class="cta-platforms desktop-only">
         <a href="#" class="btn" data-os="mac">macOS · .dmg</a>
         <a href="#" class="btn" data-os="win">Windows · .exe</a>
-        <a href="#" class="btn" data-os="linux-appimage">Linux · .AppImage</a>
-        <a href="#" class="btn" data-os="linux-deb">Linux · .deb</a>
+        <a href="#" class="btn" data-os="linux" onclick="showLinuxModal(event)">Linux · .AppImage / .deb</a>
       </div>
       <div class="mobile-only" style="justify-content:center; margin-top:20px;">
         <div class="btn" style="opacity:0.6; cursor:not-allowed;">Not available on mobile</div>
@@ -505,7 +517,26 @@
   </div>
 </footer>
 
+<div id="linux-modal" class="modal-overlay" onclick="closeLinuxModal(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <h3>Select Linux Format</h3>
+    <p>Choose the package format that works best for your distribution.</p>
+    <div class="modal-actions">
+      <a href="#" id="modal-deb-link" class="btn btn-primary" onclick="closeLinuxModal()">Download .deb</a>
+      <a href="#" id="modal-appimage-link" class="btn" onclick="closeLinuxModal()">Download .AppImage</a>
+    </div>
+  </div>
+</div>
+
 <script>
+  function showLinuxModal(e) {
+    if (e) e.preventDefault();
+    document.getElementById('linux-modal').classList.add('active');
+  }
+  function closeLinuxModal() {
+    document.getElementById('linux-modal').classList.remove('active');
+  }
+
   // Detect OS for Download button
   let os = "unknown";
   if (navigator.userAgent.indexOf("Win") != -1) os = "win";
@@ -538,31 +569,42 @@
       "linux-appimage": `https://github.com/TeZado/Code-companion/releases/download/${version}/Code-Companion-${vNumber}.AppImage`,
       "linux-deb": `https://github.com/TeZado/Code-companion/releases/download/${version}/gitcompanion_${vNumber}_amd64.deb`
     };
+    
+    document.getElementById('modal-deb-link').href = downloadLinks["linux-deb"];
+    document.getElementById('modal-appimage-link').href = downloadLinks["linux-appimage"];
 
     if (os !== "unknown") {
       const btnText = "Download for " + osNames[os];
       const headerBtn = document.getElementById('header-btn');
       const heroBtn = document.getElementById('hero-btn');
-      
-      const primaryOsKey = os === "linux" ? "linux-deb" : os;
 
       if (headerBtn) {
         headerBtn.textContent = "Download";
-        headerBtn.href = downloadLinks[primaryOsKey];
+        if (os === "linux") {
+          headerBtn.href = "#";
+          headerBtn.onclick = showLinuxModal;
+        } else {
+          headerBtn.href = downloadLinks[os];
+        }
       }
       if (heroBtn) {
         heroBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg> ` + btnText;
-        heroBtn.href = downloadLinks[primaryOsKey];
+        if (os === "linux") {
+          heroBtn.href = "#";
+          heroBtn.onclick = showLinuxModal;
+        } else {
+          heroBtn.href = downloadLinks[os];
+        }
       }
 
       // Highlight current OS chip and set links for all chips
       document.querySelectorAll('.platform-chip').forEach(chip => {
         const chipOs = chip.dataset.os;
-        if (chipOs === os || (os === "linux" && chipOs.startsWith("linux"))) {
+        if (chipOs === os) {
           chip.style.borderColor = "var(--terracotta)";
           chip.style.background = "var(--surface-2)";
         }
-        if (downloadLinks[chipOs]) {
+        if (chipOs !== "linux" && downloadLinks[chipOs]) {
           chip.href = downloadLinks[chipOs];
         }
       });
@@ -570,9 +612,9 @@
       // Hide non-matching download buttons in CTA and update links
       document.querySelectorAll('.cta-platforms .btn').forEach(btn => {
         const btnOs = btn.dataset.os;
-        if (btnOs !== os && !(os === "linux" && btnOs.startsWith("linux"))) {
+        if (btnOs !== os) {
           btn.style.display = 'none';
-        } else {
+        } else if (btnOs !== "linux") {
           btn.href = downloadLinks[btnOs];
         }
       });
