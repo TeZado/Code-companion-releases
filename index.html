@@ -372,9 +372,13 @@
         <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M8 21h8M12 17v4"/></svg>
         <div><div class="pname">Windows</div>.exe</div>
       </a>
-      <a href="#" class="platform-chip" data-os="linux">
+      <a href="#" class="platform-chip" data-os="linux-appimage">
         <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m8 8-4 4 4 4M16 8l4 4-4 4"/></svg>
         <div><div class="pname">Linux</div>.AppImage</div>
+      </a>
+      <a href="#" class="platform-chip" data-os="linux-deb">
+        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m8 8-4 4 4 4M16 8l4 4-4 4"/></svg>
+        <div><div class="pname">Linux</div>.deb</div>
       </a>
     </div>
   </section>
@@ -478,7 +482,8 @@
       <div class="cta-platforms desktop-only">
         <a href="#" class="btn" data-os="mac">macOS · .dmg</a>
         <a href="#" class="btn" data-os="win">Windows · .exe</a>
-        <a href="#" class="btn" data-os="linux">Linux · .AppImage</a>
+        <a href="#" class="btn" data-os="linux-appimage">Linux · .AppImage</a>
+        <a href="#" class="btn" data-os="linux-deb">Linux · .deb</a>
       </div>
       <div class="mobile-only" style="justify-content:center; margin-top:20px;">
         <div class="btn" style="opacity:0.6; cursor:not-allowed;">Not available on mobile</div>
@@ -530,7 +535,8 @@
     const downloadLinks = {
       mac: `https://github.com/TeZado/Code-companion/releases/download/${version}/Code-Companion-${vNumber}.dmg`,
       win: `https://github.com/TeZado/Code-companion/releases/download/${version}/Code-Companion-${vNumber}-portable.exe`,
-      linux: `https://github.com/TeZado/Code-companion/releases/download/${version}/gitcompanion_${vNumber}_amd64.deb`
+      "linux-appimage": `https://github.com/TeZado/Code-companion/releases/download/${version}/Code-Companion-${vNumber}.AppImage`,
+      "linux-deb": `https://github.com/TeZado/Code-companion/releases/download/${version}/gitcompanion_${vNumber}_amd64.deb`
     };
 
     if (os !== "unknown") {
@@ -538,32 +544,36 @@
       const headerBtn = document.getElementById('header-btn');
       const heroBtn = document.getElementById('hero-btn');
       
+      const primaryOsKey = os === "linux" ? "linux-deb" : os;
+
       if (headerBtn) {
         headerBtn.textContent = "Download";
-        headerBtn.href = downloadLinks[os];
+        headerBtn.href = downloadLinks[primaryOsKey];
       }
       if (heroBtn) {
         heroBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg> ` + btnText;
-        heroBtn.href = downloadLinks[os];
+        heroBtn.href = downloadLinks[primaryOsKey];
       }
 
       // Highlight current OS chip and set links for all chips
       document.querySelectorAll('.platform-chip').forEach(chip => {
-        if (chip.dataset.os === os) {
+        const chipOs = chip.dataset.os;
+        if (chipOs === os || (os === "linux" && chipOs.startsWith("linux"))) {
           chip.style.borderColor = "var(--terracotta)";
           chip.style.background = "var(--surface-2)";
         }
-        if (downloadLinks[chip.dataset.os]) {
-          chip.href = downloadLinks[chip.dataset.os];
+        if (downloadLinks[chipOs]) {
+          chip.href = downloadLinks[chipOs];
         }
       });
 
       // Hide non-matching download buttons in CTA and update links
       document.querySelectorAll('.cta-platforms .btn').forEach(btn => {
-        if (btn.dataset.os !== os) {
+        const btnOs = btn.dataset.os;
+        if (btnOs !== os && !(os === "linux" && btnOs.startsWith("linux"))) {
           btn.style.display = 'none';
         } else {
-          btn.href = downloadLinks[btn.dataset.os];
+          btn.href = downloadLinks[btnOs];
         }
       });
     }
