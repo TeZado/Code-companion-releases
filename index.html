@@ -286,6 +286,8 @@
       GitCompanion
     </div>
     <div class="links">
+      <a href="#features">Features</a>
+      <a href="#security">Security</a>
     </div>
     <a href="#download" class="btn btn-primary" id="header-btn">Download</a>
   </div>
@@ -367,6 +369,41 @@
         <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M4 4h7l2 2h7v12H4z"/></svg></div>
         <h3>Built-in file explorer</h3>
         <p>A VS Code-style split pane to browse your local repo, with Monaco syntax highlighting and familiar Material icons throughout.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="security">
+    <div class="section-head">
+      <div class="node"></div>
+      <div class="hash">commit f4c9e8b</div>
+      <h2>Enterprise-grade security, locally.</h2>
+      <p>GitCompanion runs completely locally. Your code and credentials never leave your machine without your permission. We built in multiple layers of defense to keep your secrets safe.</p>
+    </div>
+
+    <div class="flow-grid">
+      <div class="flow-card">
+        <div>
+          <h4>1. OS-Level Native Encryption</h4>
+          <p>We use Electron's built-in <code>safeStorage</code> API. Before your key is ever written to your hard drive, it gets encrypted using your operating system's native keychain (such as Keychain Access on macOS, Credential Manager on Windows, or libsecret / KWallet on Linux). It is never saved in plain text.</p>
+        </div>
+        <div class="feature-icon" style="margin: 0 auto; width: 64px; height: 64px; background: var(--terracotta-soft); border-radius: 16px;"><svg viewBox="0 0 24 24" fill="none" stroke="#C96F4A" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="width: 32px; height: 32px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
+      </div>
+      
+      <div class="flow-card">
+        <div class="feature-icon" style="margin: 0 auto; width: 64px; height: 64px; background: var(--amber-soft); border-radius: 16px;"><svg viewBox="0 0 24 24" fill="none" stroke="#D9A441" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="width: 32px; height: 32px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div>
+        <div>
+          <h4>2. Device-Specific Fallback Encryption</h4>
+          <p>If your Linux desktop environment doesn't have a keychain running, the app has a built-in fallback. It encrypts your key using military-grade encryption (AES-256-GCM) with a unique key derived from your computer's hostname and username. Even in fallback mode, the file cannot be decrypted if copied to another machine.</p>
+        </div>
+      </div>
+
+      <div class="flow-card">
+        <div>
+          <h4>3. Pre-Commit Secret Scanning</h4>
+          <p>To prevent accidental leaks, the app has an active safeguard built-in. When you try to commit your changes, the app scans your files for any accidental inclusions of passwords, API keys, or tokens. If it detects a potential secret, it blocks the commit and warns you in the UI so you can remove it before pushing to GitHub.</p>
+        </div>
+        <div class="feature-icon" style="margin: 0 auto; width: 64px; height: 64px; background: var(--sage-soft); border-radius: 16px;"><svg viewBox="0 0 24 24" fill="none" stroke="#8FA07E" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="width: 32px; height: 32px;"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg></div>
       </div>
     </div>
   </section>
