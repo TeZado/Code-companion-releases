@@ -474,6 +474,14 @@
             <div><div class="pname">Linux</div>.AppImage / .deb</div>
           </a>
         </div>
+        <div id="mac-command-hero" class="mac-command-section desktop-only" style="display:flex; flex-direction:column; align-items:flex-start; margin-top:20px;">
+          <p style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">To run this app on Mac, use this command:</p>
+          <div style="display:flex; align-items:center; gap:8px; background:var(--surface); padding:8px 8px 8px 16px; border-radius:12px; border:1px solid var(--line-strong); max-width:100%;">
+            <code class="mac-cmd-text" style="font-family:var(--font-mono); font-size:13px; color:var(--text); white-space:nowrap; overflow-x:auto;">xattr -d com.apple.quarantine /path/to/Code-Companion.dmg</code>
+            <button onclick="copyMacCommand(this)" class="btn" style="padding:6px 12px; font-size:12px; border-radius:8px;">Copy</button>
+          </div>
+          <p style="font-size:12.5px; color:var(--text-faint); margin-top:10px;">Once the command has run, open the app again and it will launch normally.</p>
+        </div>
       </div>
 
       <div class="hero-visual desktop-only">
@@ -657,12 +665,13 @@
         <a href="#" class="btn" data-os="win">Windows · .exe</a>
         <a href="#" class="btn" data-os="linux" onclick="showLinuxModal(event)">Linux · .AppImage / .deb</a>
       </div>
-      <div id="mac-command" class="mac-command-section desktop-only" style="display: none; flex-direction: column; align-items: center; margin-top: 32px;">
-        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 12px;">Run this command to run our app on macOS:</p>
+      <div id="mac-command" class="mac-command-section desktop-only" style="display: flex; flex-direction: column; align-items: center; margin-top: 32px;">
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 12px;">To run this app on Mac, use this command:</p>
         <div style="display: flex; align-items: center; gap: 8px; background: var(--surface); padding: 8px 8px 8px 16px; border-radius: 12px; border: 1px solid var(--line-strong); max-width: 100%;">
-          <code id="mac-cmd-text" style="font-family: var(--font-mono); font-size: 13px; color: var(--text); white-space: nowrap; overflow-x: auto;">xattr -d com.apple.quarantine /path/to/Code-Companion.dmg</code>
+          <code class="mac-cmd-text" style="font-family: var(--font-mono); font-size: 13px; color: var(--text); white-space: nowrap; overflow-x: auto;">xattr -d com.apple.quarantine /path/to/Code-Companion.dmg</code>
           <button onclick="copyMacCommand(this)" class="btn" style="padding: 6px 12px; font-size: 12px; border-radius: 8px;">Copy</button>
         </div>
+        <p style="font-size: 12.5px; color: var(--text-faint); margin-top: 10px;">Once the command has run, open the app again and it will launch normally.</p>
       </div>
       <div class="mobile-only" style="justify-content:center; margin-top:20px;">
         <div class="btn" style="opacity:0.6; cursor:not-allowed;">Not available on mobile</div>
@@ -705,7 +714,7 @@
   }
 
   function copyMacCommand(btn) {
-    const text = document.getElementById('mac-cmd-text').innerText;
+    const text = btn.parentElement.querySelector('.mac-cmd-text').innerText;
     navigator.clipboard.writeText(text).then(() => {
       const originalText = btn.innerText;
       btn.innerText = 'Copied!';
@@ -797,18 +806,12 @@
         }
       });
 
-      if (os === 'mac') {
-        const macCmd = document.getElementById('mac-command');
-        if (macCmd) {
-          macCmd.style.display = 'flex';
-          const cmdText = document.getElementById('mac-cmd-text');
-          if (cmdText) {
-             // Make the path contextually relevant to the downloaded version
-             cmdText.innerText = `xattr -d com.apple.quarantine ~/Downloads/Code-Companion-${vNumber}.dmg`;
-          }
-        }
-      }
     }
+
+    // Keep the mac quarantine-removal command's filename in sync with the
+    // latest release, regardless of the visitor's own OS.
+    const macCmdText = `xattr -d com.apple.quarantine ~/Downloads/Code-Companion-${vNumber}.dmg`;
+    document.querySelectorAll('.mac-cmd-text').forEach(el => { el.innerText = macCmdText; });
   }
 
   fetchLatestRelease();
