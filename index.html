@@ -4,16 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Code Companion — The ultimate Git companion</title>
+<meta name="description" content="A desktop app that turns Git into a living, draggable canvas — real-time push alerts, an inline three-way merge editor, and commit messages drafted for you.">
 <link rel="icon" type="image/png" href="./icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#18160F;
     --bg-raise:#211D15;
     --surface:#252017;
     --surface-2: #2B2519;
+    --surface-3: #322B1C;
     --line: rgba(242,238,227,0.08);
     --line-strong: rgba(242,238,227,0.14);
     --text:#F2EEE3;
@@ -25,6 +27,8 @@
     --sage-soft: rgba(143,160,126,0.14);
     --amber:#D9A441;
     --amber-soft: rgba(217,164,65,0.14);
+    --azure:#6FA3AD;
+    --azure-soft: rgba(111,163,173,0.14);
     --radius: 16px;
     --font-display: 'Space Grotesk', sans-serif;
     --font-body: 'Inter', sans-serif;
@@ -51,12 +55,18 @@
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
+  .dot-grid{
+    background-image: radial-gradient(circle, rgba(242,238,227,0.14) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
   .glow{
     position:fixed; border-radius:50%; filter:blur(90px); pointer-events:none; z-index:0; will-change:transform;
   }
   .glow-1{ width:600px; height:600px; background:radial-gradient(circle, rgba(201,111,74,0.28), transparent 70%); top:-100px; right:-120px;}
   .glow-2{ width:700px; height:700px; background:radial-gradient(circle, rgba(143,160,126,0.18), transparent 70%); top:60vh; left:-160px;}
   .glow-3{ width:550px; height:550px; background:radial-gradient(circle, rgba(217,164,65,0.22), transparent 70%); top:140vh; right:-100px;}
+  .glow-4{ width:500px; height:500px; background:radial-gradient(circle, rgba(111,163,173,0.16), transparent 70%); top:210vh; left:-120px;}
 
   /* ---------- Layout shells ---------- */
   .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; position:relative; z-index:2;}
@@ -98,15 +108,16 @@
     border:1px solid transparent; color:#18160F;
     box-shadow:0 8px 22px rgba(201,111,74,0.28);
   }
-  .btn-primary:hover{ 
-    background:linear-gradient(135deg, var(--terracotta), #b85f3c); 
-    filter:brightness(1.08); 
-    transform:translateY(-1px); 
+  .btn-primary:hover{
+    background:linear-gradient(135deg, var(--terracotta), #b85f3c);
+    filter:brightness(1.08);
+    transform:translateY(-1px);
     box-shadow:0 10px 26px rgba(201,111,74,0.4);
   }
 
   /* ---------- Hero ---------- */
-  .hero{ padding:120px 0 100px; position:relative; }
+  .hero{ padding:110px 0 100px; position:relative; }
+  .hero-grid{ display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,0.95fr); gap:56px; align-items:center; }
   .eyebrow{
     font-family:var(--font-mono); font-size:12px; letter-spacing:0.14em; text-transform:uppercase;
     color:var(--sage); display:flex; align-items:center; gap:10px; margin-bottom:22px;
@@ -115,20 +126,20 @@
   @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
 
   .hero h1{
-    font-family:var(--font-display); font-weight:600; font-size:clamp(44px, 7vw, 78px);
-    line-height:1.03; letter-spacing:-0.02em; max-width:820px;
+    font-family:var(--font-display); font-weight:600; font-size:clamp(40px, 5.4vw, 68px);
+    line-height:1.05; letter-spacing:-0.02em;
   }
   .hero h1 span{
     background:linear-gradient(100deg, var(--terracotta), var(--amber) 60%, var(--sage));
     -webkit-background-clip:text; background-clip:text; color:transparent;
   }
   .hero p.lede{
-    margin-top:26px; font-size:18px; line-height:1.65; color:var(--text-muted); max-width:560px;
+    margin-top:24px; font-size:17px; line-height:1.65; color:var(--text-muted); max-width:520px;
   }
 
-  .hero-actions{ display:flex; gap:14px; margin-top:38px; flex-wrap:wrap; }
+  .hero-actions{ display:flex; gap:14px; margin-top:36px; flex-wrap:wrap; }
 
-  .platform-row{ display:flex; gap:14px; margin-top:46px; flex-wrap:wrap; }
+  .platform-row{ display:flex; gap:14px; margin-top:42px; flex-wrap:wrap; }
   .platform-chip{
     display:flex; align-items:center; gap:12px; padding:14px 18px;
     background:var(--surface); border:1px solid var(--line); border-radius:14px;
@@ -140,6 +151,78 @@
   .platform-chip svg{ width:18px;height:18px; stroke:var(--text); }
   .platform-chip .pname{ color:var(--text); font-weight:600; font-family:var(--font-body); font-size:14px; }
 
+  /* ---------- Terminal one-liners ---------- */
+  .term-block{ margin-top:24px; max-width:520px; min-width:0; flex-direction:column; align-items:stretch; }
+  .term-block .term-label{ font-size:13px; color:var(--text-muted); margin-bottom:12px; line-height:1.5; }
+  .term-row{
+    min-width:0;
+    background:var(--surface); border:1px solid var(--line-strong); border-radius:12px;
+    padding:10px 12px; margin-bottom:8px;
+    transition: border-color .25s ease;
+  }
+  .term-row.active{ border-color:var(--terracotta); }
+  .term-row-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .term-os-tag{ font-family:var(--font-mono); font-size:11px; font-weight:600; color:var(--text-muted); }
+  .term-row.active .term-os-tag{ color:var(--terracotta); }
+  .term-cmd-wrap{
+    min-width:0; overflow-x:auto; padding-bottom:8px;
+    scrollbar-width:thin; scrollbar-color:var(--line-strong) transparent;
+  }
+  .term-cmd-wrap::-webkit-scrollbar{ height:5px; }
+  .term-cmd-wrap::-webkit-scrollbar-track{ background:transparent; }
+  .term-cmd-wrap::-webkit-scrollbar-thumb{ background:var(--line-strong); border-radius:4px; }
+  .term-cmd-wrap::-webkit-scrollbar-thumb:hover{ background:var(--text-faint); }
+
+  .mac-cmd-text{
+    display:block; padding-bottom:10px;
+    scrollbar-width:thin; scrollbar-color:var(--line-strong) transparent;
+  }
+  .mac-cmd-text::-webkit-scrollbar{ height:5px; }
+  .mac-cmd-text::-webkit-scrollbar-track{ background:transparent; }
+  .mac-cmd-text::-webkit-scrollbar-thumb{ background:var(--line-strong); border-radius:4px; }
+  .mac-cmd-text::-webkit-scrollbar-thumb:hover{ background:var(--text-faint); }
+  .term-cmd{ display:block; width:max-content; font-family:var(--font-mono); font-size:11.5px; color:var(--text); white-space:pre; }
+  .term-copy-btn{ padding:5px 11px; font-size:11.5px; border-radius:8px; flex-shrink:0; }
+
+  /* ---------- Hero visual (stylized product canvas) ---------- */
+  .hero-visual{
+    position:relative;
+    height:460px; overflow:hidden;
+  }
+  .hv-svg{ position:absolute; inset:0; z-index:1; width:100%; height:100%; }
+  .hv-svg path{ stroke-width:1.6; fill:none; opacity:0.6; stroke-dasharray:5 5; }
+  .hv-svg circle.hv-vertex{ fill:var(--bg); stroke-width:1.6; }
+  .hv-pulse-dot{
+    position:absolute; width:7px; height:7px; border-radius:50%; background:var(--sage);
+    box-shadow:0 0 10px 3px rgba(143,160,126,0.6); z-index:3; offset-rotate:0deg;
+    animation: hvtravel 4.5s ease-in-out infinite;
+  }
+  @keyframes hvtravel{
+    0%{ offset-distance:0%; opacity:0;}
+    8%{ opacity:1;}
+    92%{ opacity:1;}
+    100%{ offset-distance:100%; opacity:0;}
+  }
+  .hv-card{
+    position:absolute; width:250px; z-index:3;
+    background:rgba(37,32,23,0.94); backdrop-filter:blur(10px);
+    border:1px solid var(--line-strong); border-radius:12px; padding:14px 16px;
+    box-shadow:0 16px 32px rgba(0,0,0,0.35);
+  }
+  .hv-card .hv-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:9px;}
+  .hv-branch{ display:flex; align-items:center; gap:7px; font-family:var(--font-mono); font-size:12px; font-weight:600;}
+  .hv-branch .b-dot{ width:7px;height:7px;border-radius:50%; }
+  .hv-stat{ font-family:var(--font-mono); font-size:11px; color:var(--sage); }
+  .hv-card p{ font-size:12.5px; color:var(--text); font-weight:600; margin-bottom:10px; line-height:1.4; }
+  .hv-card .hv-meta{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-faint); }
+  .hv-card .hv-meta .hv-avatar{ width:16px;height:16px;border-radius:50%; display:flex;align-items:center;justify-content:center; background:var(--surface-3); }
+  .hv-card .hv-meta .hv-avatar svg{ width:10px;height:10px; }
+  .hv-node-anchor{ position:absolute; right:-4px; top:50%; transform:translateY(-50%); width:8px;height:8px;border-radius:50%; z-index:4; box-shadow:0 0 0 3px var(--bg); }
+  .hv-card-main{ top:14%; left:8%; }
+  .hv-card-main .b-dot, .hv-card-main .hv-node-anchor{ background:var(--azure); }
+  .hv-card-release{ top:46%; left:22%; }
+  .hv-card-release .b-dot, .hv-card-release .hv-node-anchor{ background:var(--terracotta); }
+
   /* ---------- Git rail (signature element) ---------- */
   .rail-track{
     position:relative;
@@ -150,26 +233,9 @@
     background:repeating-linear-gradient(to bottom, var(--line-strong) 0 6px, transparent 6px 14px);
     z-index:1;
   }
-  .rail-pulse{
-    position:absolute; left:calc(32px + 27px); width:2px; top:0;
-    background:linear-gradient(to bottom, transparent, var(--terracotta), transparent);
-    filter:blur(1px); z-index:1;
-  }
-  .rail-pulse-dot{
-    position:absolute; left:calc(32px + 27px); width:8px;height:8px;border-radius:50%;
-    background:var(--terracotta); box-shadow:0 0 12px 3px rgba(201,111,74,0.6);
-    transform:translateX(-3px); z-index:2;
-    animation: travel 7s linear infinite;
-  }
-  @keyframes travel{
-    0%{ top:0%; opacity:0; }
-    5%{ opacity:1;}
-    95%{ opacity:1;}
-    100%{ top:100%; opacity:0;}
-  }
 
-  section.section{ padding:70px 0; position:relative; z-index:2;}
-  .section-head{ margin-bottom:56px; padding-left:70px; position:relative; }
+  section.section{ padding:64px 0; position:relative; z-index:2;}
+  .section-head{ margin-bottom:52px; padding-left:70px; position:relative; }
   .section-head .node{
     position:absolute; left:0; top:4px; width:14px;height:14px;border-radius:50%;
     background:var(--bg); border:2px solid var(--terracotta); z-index:3;
@@ -183,42 +249,72 @@
   }
   .section-head p{ color:var(--text-muted); margin-top:10px; max-width:560px; font-size:15px; line-height:1.6;}
 
-  /* ---------- Feature cards along rail ---------- */
+  /* ---------- Workflow steps ---------- */
+  .step-row{ padding-left:70px; display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+  .step-card{
+    background:rgba(37,32,23,0.4); backdrop-filter:blur(12px);
+    border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:28px;
+    position:relative;
+    opacity:0; transform: translateY(28px);
+    transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1);
+  }
+  .step-card.in-view{ opacity:1; transform:none; }
+  .step-num{ font-family:var(--font-mono); font-size:12px; color:var(--text-faint); margin-bottom:14px; }
+  .step-card h4{ font-family:var(--font-display); font-size:18px; font-weight:600; margin-bottom:10px; }
+  .step-card p{ color:var(--text-muted); font-size:14px; line-height:1.6; }
+  .step-arrow{ position:absolute; right:-24px; top:50%; transform:translateY(-50%); color:var(--text-faint); z-index:2; }
+
+  /* ---------- Spotlight feature cards ---------- */
+  .spotlight-row{ padding-left:70px; display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-bottom:24px; }
+  .spotlight-card{
+    background:linear-gradient(160deg, rgba(43,37,25,0.7), rgba(37,32,23,0.4));
+    backdrop-filter:blur(12px);
+    border:1px solid rgba(255,255,255,0.08); border-radius:22px;
+    padding:30px; position:relative; overflow:hidden;
+    box-shadow:0 4px 24px rgba(0,0,0,0.2);
+    opacity:0; transform: perspective(900px) rotateX(10deg) translateY(40px);
+    transition: opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1), border-color .3s, background .3s;
+  }
+  .spotlight-card.in-view{ opacity:1; transform:none; }
+  .spotlight-card:hover{ border-color:rgba(255,255,255,0.16); box-shadow:0 14px 40px rgba(0,0,0,0.35); }
+  .spotlight-card .spot-glow{
+    position:absolute; width:200px; height:200px; border-radius:50%; filter:blur(60px); top:-60px; right:-60px; z-index:0; opacity:0.5;
+  }
+  .spotlight-card .feature-icon{ position:relative; z-index:1; width:48px;height:48px;border-radius:12px; display:flex;align-items:center;justify-content:center; margin-bottom:20px;}
+  .spotlight-card .feature-icon svg{ width:24px;height:24px; }
+  .spotlight-card h3{ position:relative; z-index:1; font-family:var(--font-display); font-size:20px; font-weight:600; margin-bottom:10px; letter-spacing:-0.01em; }
+  .spotlight-card p{ position:relative; z-index:1; color:var(--text-muted); font-size:14.5px; line-height:1.65; }
+
+  /* ---------- Feature grid cards ---------- */
   .feature-row{
-    display:grid; grid-template-columns:1fr 1fr; gap:28px; padding-left:70px;
+    display:grid; grid-template-columns:1fr 1fr 1fr; gap:24px; padding-left:70px;
   }
   .feature-card{
     background:rgba(37,32,23,0.4);
     backdrop-filter:blur(12px);
-    border:1px solid rgba(255,255,255,0.06); 
-    border-radius:24px;
-    padding:30px; position:relative;
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:20px;
+    padding:26px; position:relative;
     box-shadow: 0 4px 24px rgba(0,0,0,0.2);
-    opacity:0; transform: perspective(900px) rotateX(14deg) translateY(50px) scale(.94);
-    transition: opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1), border-color .3s, background .3s;
-    will-change: transform, opacity;
+    opacity:0; transform: translateY(30px);
+    transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1), border-color .3s, background .3s;
   }
   .feature-card.in-view{ opacity:1; transform:none; }
-  .feature-card:hover{ 
+  .feature-card:hover{
     border-color:rgba(255,255,255,0.15);
     background:rgba(43,37,25,0.6);
     box-shadow: 0 12px 40px rgba(0,0,0,0.4);
   }
-  .feature-card .wire{ display: none; }
-  .feature-card .wire path{
-    stroke-dasharray: 60; stroke-dashoffset:60; transition: stroke-dashoffset 0.9s ease .1s;
-  }
-  .feature-card.in-view .wire path{ stroke-dashoffset:0; }
 
   .feature-icon{
-    width:44px;height:44px;border-radius:11px; display:flex;align-items:center;justify-content:center;
-    margin-bottom:18px;
+    width:42px;height:42px;border-radius:11px; display:flex;align-items:center;justify-content:center;
+    margin-bottom:16px;
   }
-  .feature-icon svg{ width:22px;height:22px; }
+  .feature-icon svg{ width:21px;height:21px; }
   .feature-card h3{
-    font-family:var(--font-display); font-size:19px; font-weight:600; margin-bottom:10px; letter-spacing:-0.01em;
+    font-family:var(--font-display); font-size:17.5px; font-weight:600; margin-bottom:9px; letter-spacing:-0.01em;
   }
-  .feature-card p{ color:var(--text-muted); font-size:14.5px; line-height:1.6; }
+  .feature-card p{ color:var(--text-muted); font-size:14px; line-height:1.6; }
 
   .tag-terra .feature-icon{ background:var(--terracotta-soft); }
   .tag-terra svg{ stroke:var(--terracotta); }
@@ -226,6 +322,8 @@
   .tag-sage svg{ stroke:var(--sage); }
   .tag-amber .feature-icon{ background:var(--amber-soft); }
   .tag-amber svg{ stroke:var(--amber); }
+  .tag-azure .feature-icon{ background:var(--azure-soft); }
+  .tag-azure svg{ stroke:var(--azure); }
 
   /* ---------- Flow Cards (Security) ---------- */
   .flow-grid{
@@ -240,7 +338,7 @@
     box-shadow: 0 4px 24px rgba(0,0,0,0.2);
     transition: transform .4s ease, border-color .4s ease, background .4s ease, box-shadow .4s ease;
   }
-  .flow-card:hover{ 
+  .flow-card:hover{
     border-color:rgba(255,255,255,0.15);
     background:rgba(43,37,25,0.6);
     transform: translateY(-4px) scale(1.01);
@@ -248,7 +346,7 @@
   }
   .flow-card h4{ font-family:var(--font-display); font-size:19px; font-weight:600; margin-bottom:8px; }
   .flow-card p{ color:var(--text-muted); font-size:14.5px; line-height:1.6; }
-  
+
   .flow-card .feature-icon {
     min-width: 64px; width: 64px; height: 64px; border-radius: 16px; margin: 0;
   }
@@ -325,21 +423,44 @@
   .modal-content p { color: var(--text-muted); margin-bottom: 28px; font-size: 14px; line-height: 1.5; }
   .modal-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
+  .dl-modal-content{ max-width:480px; text-align:left; }
+  .dl-modal-content h3, .dl-modal-content > p{ text-align:center; }
+  .dl-os-block{ display:none; }
+  .dl-os-block.active{ display:block; }
+  .dl-os-title{ font-family:var(--font-mono); font-size:12px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-faint); margin-bottom:12px; }
+  .dl-divider{
+    display:flex; align-items:center; gap:10px; margin:20px 0 14px;
+    font-size:11.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.06em;
+  }
+  .dl-divider::before, .dl-divider::after{ content:""; flex:1; height:1px; background:var(--line-strong); }
+  .dl-os-block + .dl-os-block{ margin-top:28px; padding-top:24px; border-top:1px solid var(--line); }
+
+  @media (max-width:980px){
+    .hero-grid{ grid-template-columns:1fr; }
+    .hero-visual{ height:380px; }
+    .spotlight-row, .step-row{ grid-template-columns:1fr; }
+    .step-arrow{ display:none; }
+    .feature-row{ grid-template-columns:1fr 1fr; }
+  }
+
   @media (max-width:760px){
     .desktop-only { display: none !important; }
     .mobile-only { display: flex !important; }
     .feature-row{ grid-template-columns:1fr; padding-left:44px; }
+    .spotlight-row{ padding-left:44px; }
+    .step-row{ padding-left:44px; }
     .flow-grid{ padding-left:44px; }
     .flow-card{ flex-direction:column; text-align:center; }
     .section-head{ padding-left:44px; }
-    .rail-line, .rail-pulse, .rail-pulse-dot{ left:calc(32px + 1px); }
+    .rail-line{ left:calc(32px + 1px); }
     nav .links{ display:none; }
     .hero{ padding:80px 0 60px; }
+    .hero-visual{ display:none; }
   }
 
   @media (prefers-reduced-motion: reduce){
     *{ animation:none !important; transition:none !important; }
-    .feature-card, .cta-card{ opacity:1 !important; transform:none !important; }
+    .feature-card, .spotlight-card, .step-card, .cta-card{ opacity:1 !important; transform:none !important; }
   }
 </style>
 </head>
@@ -349,6 +470,7 @@
 <div class="glow glow-1" id="glow1"></div>
 <div class="glow glow-2" id="glow2"></div>
 <div class="glow glow-3" id="glow3"></div>
+<div class="glow glow-4" id="glow4"></div>
 
 <header>
   <div class="nav">
@@ -360,6 +482,7 @@
     </div>
     <div class="links">
       <a href="#features">Features</a>
+      <a href="#workflow">Workflow</a>
       <a href="#security">Security</a>
     </div>
     <a href="#download" class="btn btn-primary desktop-only" id="header-btn">Download</a>
@@ -368,83 +491,165 @@
 
 <main class="wrap">
   <section class="hero">
-    <div class="eyebrow"><span class="dot"></span> Cross-platform</div>
-    <h1>The ultimate<br><span>Code Companion</span></h1>
-    <p class="lede">A visually stunning desktop app that reimagines the Git and GitHub workflow — live branch graphs, real-time push notifications, and an inline three-way merge editor, all in one place.</p>
-    <div class="hero-actions desktop-only">
-      <a href="#download" class="btn btn-primary" id="hero-btn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-        Download
-      </a>
-    </div>
-    <div class="hero-actions mobile-only">
-      <div class="btn" style="opacity:0.6; cursor:not-allowed;">Not available on mobile</div>
-    </div>
-    <div class="platform-row desktop-only">
-      <a href="#" class="platform-chip" data-os="mac">
-        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M17.5 12.5c0-2.2 1.8-3.3 1.9-3.4-1-1.5-2.6-1.7-3.2-1.7-1.4-.1-2.6.8-3.3.8-.7 0-1.7-.8-2.9-.8-1.5 0-2.9.9-3.6 2.2-1.6 2.7-.4 6.7 1.1 8.9.7 1.1 1.6 2.3 2.8 2.3 1.1 0 1.5-.7 2.9-.7s1.7.7 2.9.7c1.2 0 2-1.1 2.7-2.2.6-.9.9-1.7.9-1.8-.1 0-2.2-.8-2.2-3.3Z"/><path d="M14.8 5.4c.5-.7.9-1.6.8-2.5-.8 0-1.8.5-2.4 1.2-.5.6-1 1.6-.8 2.4.9.1 1.8-.5 2.4-1.1Z"/></svg>
-        <div><div class="pname">macOS</div>.dmg</div>
-      </a>
-      <a href="#" class="platform-chip" data-os="win">
-        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M8 21h8M12 17v4"/></svg>
-        <div><div class="pname">Windows</div>.exe</div>
-      </a>
-      <a href="#" class="platform-chip" data-os="linux" onclick="showLinuxModal(event)">
-        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m8 8-4 4 4 4M16 8l4 4-4 4"/></svg>
-        <div><div class="pname">Linux</div>.AppImage / .deb</div>
-      </a>
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow"><span class="dot"></span> Local-first · Cross-platform</div>
+        <h1>The ultimate<br><span>Code Companion</span></h1>
+        <p class="lede">A desktop app that turns Git into a living, draggable canvas — real-time push alerts, an inline three-way merge editor, and commit messages drafted for you. No terminal required.</p>
+        <div class="hero-actions desktop-only">
+          <a href="#download" class="btn btn-primary" id="hero-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+            Download
+          </a>
+        </div>
+        <div class="hero-actions mobile-only">
+          <div class="btn" style="opacity:0.6; cursor:not-allowed;">Not available on mobile</div>
+        </div>
+        <div class="platform-row desktop-only">
+          <a href="#" class="platform-chip" data-os="mac">
+            <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M17.5 12.5c0-2.2 1.8-3.3 1.9-3.4-1-1.5-2.6-1.7-3.2-1.7-1.4-.1-2.6.8-3.3.8-.7 0-1.7-.8-2.9-.8-1.5 0-2.9.9-3.6 2.2-1.6 2.7-.4 6.7 1.1 8.9.7 1.1 1.6 2.3 2.8 2.3 1.1 0 1.5-.7 2.9-.7s1.7.7 2.9.7c1.2 0 2-1.1 2.7-2.2.6-.9.9-1.7.9-1.8-.1 0-2.2-.8-2.2-3.3Z"/><path d="M14.8 5.4c.5-.7.9-1.6.8-2.5-.8 0-1.8.5-2.4 1.2-.5.6-1 1.6-.8 2.4.9.1 1.8-.5 2.4-1.1Z"/></svg>
+            <div><div class="pname">macOS</div>.dmg</div>
+          </a>
+          <a href="#" class="platform-chip" data-os="win">
+            <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M8 21h8M12 17v4"/></svg>
+            <div><div class="pname">Windows</div>.exe</div>
+          </a>
+          <a href="#" class="platform-chip" data-os="linux" onclick="showLinuxModal(event)">
+            <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m8 8-4 4 4 4M16 8l4 4-4 4"/></svg>
+            <div><div class="pname">Linux</div>.AppImage / .deb</div>
+          </a>
+        </div>
+      </div>
+
+      <div class="hero-visual desktop-only">
+        <div class="dot-grid" style="position:absolute; inset:0;"></div>
+        <svg class="hv-svg" id="hvSvg"></svg>
+        <div class="hv-pulse-dot" id="hvPulse"></div>
+
+        <div class="hv-card hv-card-main" id="hvCardMain">
+          <div class="hv-top">
+            <div class="hv-branch"><span class="b-dot"></span>main</div>
+          </div>
+          <p>feat: connect your first repo</p>
+          <div class="hv-meta">
+            <span class="hv-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"><path d="M12 3v13m0 0-4-4m4 4 4-4"/></svg></span>
+            Updated 14 minutes ago
+          </div>
+          <span class="hv-node-anchor"></span>
+        </div>
+
+        <div class="hv-card hv-card-release" id="hvCardRelease">
+          <div class="hv-top">
+            <div class="hv-branch"><span class="b-dot"></span>release</div>
+            <div class="hv-stat">+3 −3</div>
+          </div>
+          <p>chore: bump version to 1.0.10</p>
+          <div class="hv-meta">
+            <span class="hv-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg></span>
+            github-actions · 2 hours ago
+          </div>
+          <span class="hv-node-anchor"></span>
+        </div>
+
+      </div>
     </div>
   </section>
 </main>
 
 <div class="rail-track">
   <div class="rail-line" id="railLine"></div>
-  <div class="rail-pulse-dot"></div>
+
+  <section class="section" id="workflow">
+    <div class="section-head">
+      <div class="node"></div>
+      <div class="hash">commit 1a2b3c4</div>
+      <h2>Three steps, zero terminal</h2>
+      <p>From cloning a repo to shipping a resolved merge, the whole loop happens on one canvas.</p>
+    </div>
+    <div class="step-row">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <h4>Connect a repo</h4>
+        <p>Point it at a local folder or clone straight from GitHub. It shows up as a live card on your canvas in seconds.</p>
+        <span class="step-arrow desktop-only">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </span>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <h4>Watch it move</h4>
+        <p>Every push, pull, and merge animates through the graph in real time, with a native alert the moment something changes.</p>
+        <span class="step-arrow desktop-only">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </span>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <h4>Resolve, then ship</h4>
+        <p>Handle conflicts visually, write a commit — or let one be drafted for you — and push, without ever leaving the canvas.</p>
+      </div>
+    </div>
+  </section>
 
   <section class="section" id="features">
     <div class="section-head">
       <div class="node"></div>
       <div class="hash">commit a3f9d2c</div>
-      <h2>Watch your repo come alive</h2>
-      <p>Six features branch off the main line — everything you touch day to day, rendered visually instead of buried in flags.</p>
+      <h2>A canvas for how you actually work</h2>
+      <p>Nine features branch off the main line — everything you touch day to day, rendered visually instead of buried in flags.</p>
+    </div>
+
+    <div class="spotlight-row">
+      <div class="spotlight-card">
+        <div class="spot-glow" style="background:radial-gradient(circle, var(--azure), transparent 70%);"></div>
+        <div class="feature-icon" style="background:var(--azure-soft);"><svg viewBox="0 0 24 24" fill="none" stroke="var(--azure)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="6" cy="6" r="2.4"/><circle cx="6" cy="18" r="2.4"/><circle cx="18" cy="12" r="2.4"/><path d="M6 8.4V15.6M8.2 12H15.8"/></svg></div>
+        <h3>Live repository tree</h3>
+        <p>Branches and collaborators render as an animated, dynamic map — with ahead/behind counts and diff stats on every card, at a glance.</p>
+      </div>
+      <div class="spotlight-card">
+        <div class="spot-glow" style="background:radial-gradient(circle, var(--terracotta), transparent 70%);"></div>
+        <div class="feature-icon tag-terra"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg></div>
+        <h3>Freeform canvas control</h3>
+        <p>Drag cards anywhere, auto-arrange, sort, merge, or fix overlaps with one click — the graph bends to how you think, with tactile physics-driven connectors.</p>
+      </div>
+      <div class="spotlight-card">
+        <div class="spot-glow" style="background:radial-gradient(circle, var(--sage), transparent 70%);"></div>
+        <div class="feature-icon tag-sage"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M8 3v18M16 3v18M3 8h18M3 16h18"/></svg></div>
+        <h3>Visual merge &amp; diff editor</h3>
+        <p>Resolve three-way conflicts hunk by hunk with Accept Current, Accept Incoming, or Accept Both — plus a dedicated overlay to review any commit's diff.</p>
+      </div>
     </div>
 
     <div class="feature-row">
-      <div class="feature-card tag-terra">
-        <div class="wire"><svg width="52" height="2"><path d="M0 1 H52" stroke="#C96F4A" stroke-width="2"/></svg></div>
-        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="6" cy="6" r="2.4"/><circle cx="6" cy="18" r="2.4"/><circle cx="18" cy="12" r="2.4"/><path d="M6 8.4V15.6M8.2 12H15.8"/></svg></div>
-        <h3>Live repository tree</h3>
-        <p>Branches and collaborators render as an animated, dynamic tree — with ahead/behind counts and diff stats on every card, at a glance.</p>
-      </div>
       <div class="feature-card tag-amber">
-        <div class="wire"><svg width="52" height="2"><path d="M0 1 H52" stroke="#D9A441" stroke-width="2"/></svg></div>
         <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
         <h3>Real-time push notifications</h3>
-        <p>GitHub webhooks paired with a smee.io relay — falling back to polling automatically — deliver native desktop alerts the moment a watched branch updates.</p>
+        <p>Get a native desktop alert the instant a watched branch updates, with the author and commit message ready to read.</p>
       </div>
       <div class="feature-card tag-sage">
-        <div class="wire"><svg width="52" height="2"><path d="M0 1 H52" stroke="#8FA07E" stroke-width="2"/></svg></div>
         <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M17 2.1 21 6l-4 3.9M3 12v-1a4 4 0 0 1 4-4h14M7 21.9 3 18l4-3.9M21 12v1a4 4 0 0 1-4 4H3"/></svg></div>
-        <h3>Integrated Git operations</h3>
-        <p>Clone, pull, fetch, commit, push and stash from one sync bar — with edge-case handling for detached HEAD, divergent branches and dirty worktrees.</p>
-      </div>
-      <div class="feature-card tag-terra">
-        <div class="wire"><svg width="52" height="2"><path d="M0 1 H52" stroke="#C96F4A" stroke-width="2"/></svg></div>
-        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M8 3v18M16 3v18M3 8h18M3 16h18"/></svg></div>
-        <h3>Monaco-powered merge editor</h3>
-        <p>Resolve three-way conflicts hunk by hunk with Accept Current, Accept Incoming or Accept Both — right inside the app, no terminal required.</p>
+        <h3>Full git sync workflow</h3>
+        <p>Clone, pull, fetch, commit, push and stash from one sync bar, with edge-case handling for detached HEAD, divergent branches, and dirty worktrees. Pre-commit hook failures surface cleanly right in the UI.</p>
       </div>
       <div class="feature-card tag-amber">
-        <div class="wire"><svg width="52" height="2"><path d="M0 1 H52" stroke="#D9A441" stroke-width="2"/></svg></div>
-        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg></div>
-        <h3>Seamless GitHub auth</h3>
-        <p>Sign in with GitHub's device flow; tokens are encrypted at rest with a secure native encryption layer, and the GitHub CLI installs itself if it's missing.</p>
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 3l1.2 3.6L17 8l-3.8 1.4L12 13l-1.2-3.6L7 8l3.8-1.4L12 3z"/><path d="M19 14l.7 2.1L22 17l-2.3.9L19 20l-.7-2.1L16 17l2.3-.9L19 14z"/></svg></div>
+        <h3>AI-assisted commit messages</h3>
+        <p>Get a commit message drafted straight from your staged changes — ready to edit, or send as-is.</p>
+      </div>
+      <div class="feature-card tag-terra">
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a6 6 0 0 1 6-6h1"/><path d="M17 21l2 2 4-4"/></svg></div>
+        <h3>Seamless GitHub sign-in</h3>
+        <p>Device-flow authentication keeps your GitHub identity in sync automatically — no manual setup, no copy-pasted tokens.</p>
       </div>
       <div class="feature-card tag-sage">
-        <div class="wire"><svg width="52" height="2"><path d="M0 1 H52" stroke="#8FA07E" stroke-width="2"/></svg></div>
         <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M4 4h7l2 2h7v12H4z"/></svg></div>
         <h3>Built-in file explorer</h3>
-        <p>A VS Code-style split pane to browse your local repo, with Monaco syntax highlighting and familiar Material icons throughout.</p>
+        <p>A split-pane view of your local repo with full syntax highlighting, so you can inspect files without leaving the app.</p>
+      </div>
+      <div class="feature-card tag-azure">
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
+        <h3>One workspace, every repo</h3>
+        <p>A dashboard for all your repositories, plus one click to connect any local folder or spin up a brand-new repo.</p>
       </div>
     </div>
   </section>
@@ -460,24 +665,24 @@
     <div class="flow-grid">
       <div class="flow-card">
         <div>
-          <h4>1. OS-Level Native Encryption</h4>
-          <p>Before your key is ever written to your hard drive, it gets encrypted using your operating system's native keychain (such as Keychain Access on macOS, Credential Manager on Windows, or libsecret / KWallet on Linux). It is never saved in plain text.</p>
+          <h4>1. Native credential vault</h4>
+          <p>Before a key ever touches your disk, it passes through your operating system's own secure credential store (such as Keychain Access on macOS, Credential Manager on Windows, or libsecret / KWallet on Linux). It is never saved in plain text.</p>
         </div>
         <div class="feature-icon tag-terra-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#C96F4A" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
       </div>
-      
+
       <div class="flow-card">
         <div class="feature-icon tag-amber-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#D9A441" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div>
         <div>
-          <h4>2. Device-Specific Fallback Encryption</h4>
-          <p>If your Linux desktop environment doesn't have a keychain running, the app has a built-in fallback. It encrypts your key using military-grade encryption (AES-256-GCM) with a unique key derived from your computer's hostname and username. Even in fallback mode, the file cannot be decrypted if copied to another machine.</p>
+          <h4>2. Device-locked fallback encryption</h4>
+          <p>If your desktop environment doesn't have a credential vault running, a built-in fallback takes over. It encrypts your key with military-grade encryption, using a unique key derived from your own machine. Copy the file to another computer and it simply won't open.</p>
         </div>
       </div>
 
       <div class="flow-card">
         <div>
-          <h4>3. Pre-Commit Secret Scanning</h4>
-          <p>To prevent accidental leaks, the app has an active safeguard built-in. When you try to commit your changes, the app scans your files for any accidental inclusions of passwords, API keys, or tokens. If it detects a potential secret, it blocks the commit and warns you in the UI so you can remove it before pushing to GitHub.</p>
+          <h4>3. Pre-commit secret scanning</h4>
+          <p>Every commit is scanned first. If a password, API key, or token slips into your changes, the commit is blocked and flagged in the UI before it ever reaches GitHub.</p>
         </div>
         <div class="feature-icon tag-sage-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#8FA07E" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg></div>
       </div>
@@ -497,12 +702,13 @@
         <a href="#" class="btn" data-os="win">Windows · .exe</a>
         <a href="#" class="btn" data-os="linux" onclick="showLinuxModal(event)">Linux · .AppImage / .deb</a>
       </div>
-      <div id="mac-command" class="mac-command-section desktop-only" style="display: none; flex-direction: column; align-items: center; margin-top: 32px;">
-        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 12px;">Run this command to run our app on macOS:</p>
+      <div id="mac-command" class="mac-command-section desktop-only" style="display: flex; flex-direction: column; align-items: center; margin-top: 32px;">
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 12px;">To run this app on Mac, use this command:</p>
         <div style="display: flex; align-items: center; gap: 8px; background: var(--surface); padding: 8px 8px 8px 16px; border-radius: 12px; border: 1px solid var(--line-strong); max-width: 100%;">
-          <code id="mac-cmd-text" style="font-family: var(--font-mono); font-size: 13px; color: var(--text); white-space: nowrap; overflow-x: auto;">xattr -d com.apple.quarantine /path/to/Code-Companion.dmg</code>
+          <code class="mac-cmd-text" style="font-family: var(--font-mono); font-size: 13px; color: var(--text); white-space: nowrap; overflow-x: auto;">xattr -d com.apple.quarantine /path/to/Code-Companion.dmg</code>
           <button onclick="copyMacCommand(this)" class="btn" style="padding: 6px 12px; font-size: 12px; border-radius: 8px;">Copy</button>
         </div>
+        <p style="font-size: 12.5px; color: var(--text-faint); margin-top: 10px;">Once the command has run, open the app again and it will launch normally.</p>
       </div>
       <div class="mobile-only" style="justify-content:center; margin-top:20px;">
         <div class="btn" style="opacity:0.6; cursor:not-allowed;">Not available on mobile</div>
@@ -535,6 +741,62 @@
   </div>
 </div>
 
+<div id="download-modal" class="modal-overlay" onclick="closeDownloadModal(event)">
+  <div class="modal-content dl-modal-content" onclick="event.stopPropagation()">
+    <h3>Download Code Companion</h3>
+    <p>Choose how you'd like to install it.</p>
+
+    <div class="dl-os-block" data-os="mac">
+      <div class="dl-os-title">macOS</div>
+      <a href="#" class="btn btn-primary dl-direct-link" data-os="mac" style="width:100%; justify-content:center;">Direct download · .dmg</a>
+      <div class="mac-command-section" style="display:flex; flex-direction:column; align-items:stretch; margin-top:14px;">
+        <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:8px;">After opening the .dmg, macOS may quarantine it. Run:</p>
+        <div style="display:flex; align-items:center; gap:8px; background:var(--surface); padding:8px 8px 8px 14px; border-radius:12px; border:1px solid var(--line-strong);">
+          <code class="mac-cmd-text" style="font-family:var(--font-mono); font-size:12px; color:var(--text); white-space:nowrap; overflow-x:auto;">xattr -d com.apple.quarantine /path/to/Code-Companion.dmg</code>
+          <button onclick="copyMacCommand(this)" class="btn" style="padding:5px 11px; font-size:11.5px; border-radius:8px; flex-shrink:0;">Copy</button>
+        </div>
+      </div>
+      <div class="dl-divider">or use the terminal</div>
+      <div class="term-row" data-os="mac" style="margin-bottom:0;">
+        <div class="term-row-top">
+          <span class="term-os-tag">One-liner</span>
+          <button onclick="copyTermCommand(this)" class="btn term-copy-btn">Copy</button>
+        </div>
+        <div class="term-cmd-wrap"><code class="term-cmd" data-term-os="mac">curl -L -o ~/Downloads/Code-Companion.dmg &lt;download-url&gt; &amp;&amp; xattr -d com.apple.quarantine ~/Downloads/Code-Companion.dmg &amp;&amp; open ~/Downloads/Code-Companion.dmg</code></div>
+      </div>
+    </div>
+
+    <div class="dl-os-block" data-os="win">
+      <div class="dl-os-title">Windows</div>
+      <a href="#" class="btn btn-primary dl-direct-link" data-os="win" style="width:100%; justify-content:center;">Direct download · .exe</a>
+      <div class="dl-divider">or use the terminal</div>
+      <div class="term-row" data-os="win" style="margin-bottom:0;">
+        <div class="term-row-top">
+          <span class="term-os-tag">One-liner</span>
+          <button onclick="copyTermCommand(this)" class="btn term-copy-btn">Copy</button>
+        </div>
+        <div class="term-cmd-wrap"><code class="term-cmd" data-term-os="win">curl -L -o "$env:USERPROFILE\Downloads\Code-Companion.exe" &lt;download-url&gt;; &amp; "$env:USERPROFILE\Downloads\Code-Companion.exe"</code></div>
+      </div>
+    </div>
+
+    <div class="dl-os-block" data-os="linux">
+      <div class="dl-os-title">Linux</div>
+      <div class="modal-actions" style="margin-bottom:0;">
+        <a href="#" id="dl-linux-deb-link" class="btn btn-primary">Direct download · .deb</a>
+        <a href="#" id="dl-linux-appimage-link" class="btn">Direct download · .AppImage</a>
+      </div>
+      <div class="dl-divider">or use the terminal</div>
+      <div class="term-row" data-os="linux" style="margin-bottom:0;">
+        <div class="term-row-top">
+          <span class="term-os-tag">One-liner</span>
+          <button onclick="copyTermCommand(this)" class="btn term-copy-btn">Copy</button>
+        </div>
+        <div class="term-cmd-wrap"><code class="term-cmd" data-term-os="linux">curl -L -o ~/Downloads/Code-Companion.AppImage &lt;download-url&gt; &amp;&amp; chmod +x ~/Downloads/Code-Companion.AppImage &amp;&amp; ~/Downloads/Code-Companion.AppImage</code></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   function showLinuxModal(e) {
     if (e) e.preventDefault();
@@ -544,8 +806,30 @@
     document.getElementById('linux-modal').classList.remove('active');
   }
 
+  function showDownloadModal(e) {
+    if (e) e.preventDefault();
+    document.querySelectorAll('.dl-os-block').forEach(block => {
+      block.classList.toggle('active', os === 'unknown' || block.dataset.os === os);
+    });
+    document.getElementById('download-modal').classList.add('active');
+  }
+  function closeDownloadModal() {
+    document.getElementById('download-modal').classList.remove('active');
+  }
+
   function copyMacCommand(btn) {
-    const text = document.getElementById('mac-cmd-text').innerText;
+    const text = btn.parentElement.querySelector('.mac-cmd-text').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      const originalText = btn.innerText;
+      btn.innerText = 'Copied!';
+      setTimeout(() => { btn.innerText = originalText; }, 2000);
+    }).catch(err => {
+      console.error('Failed to copy', err);
+    });
+  }
+
+  function copyTermCommand(btn) {
+    const text = btn.closest('.term-row').querySelector('.term-cmd').innerText;
     navigator.clipboard.writeText(text).then(() => {
       const originalText = btn.innerText;
       btn.innerText = 'Copied!';
@@ -568,9 +852,9 @@
   };
 
   async function fetchLatestRelease() {
-    let version = "v1.0.8"; // Default fallback
+    let version = "v1.0.10"; // Default fallback, used only if the GitHub API call below fails
     try {
-      const res = await fetch("https://api.github.com/repos/TeZado/Code-companion/releases/latest");
+      const res = await fetch("https://api.github.com/repos/TeZado/Code-companion-releases/releases/latest");
       const data = await res.json();
       if (data.tag_name) {
         version = data.tag_name;
@@ -578,41 +862,65 @@
     } catch (e) {
       console.error("Failed to fetch latest release", e);
     }
-    
+
     const vNumber = version.startsWith("v") ? version.substring(1) : version;
-    
+
     const downloadLinks = {
-      mac: `https://github.com/TeZado/Code-companion/releases/download/${version}/Code-Companion-${vNumber}.dmg`,
-      win: `https://github.com/TeZado/Code-companion/releases/download/${version}/Code-Companion-${vNumber}-portable.exe`,
-      "linux-appimage": `https://github.com/TeZado/Code-companion/releases/download/${version}/Code-Companion-${vNumber}.AppImage`,
-      "linux-deb": `https://github.com/TeZado/Code-companion/releases/download/${version}/gitcompanion_${vNumber}_amd64.deb`
+      mac: `https://github.com/TeZado/Code-companion-releases/releases/download/${version}/Code-Companion-${vNumber}.dmg`,
+      win: `https://github.com/TeZado/Code-companion-releases/releases/download/${version}/Code-Companion-${vNumber}-portable.exe`,
+      "linux-appimage": `https://github.com/TeZado/Code-companion-releases/releases/download/${version}/Code-Companion-${vNumber}.AppImage`,
+      "linux-deb": `https://github.com/TeZado/Code-companion-releases/releases/download/${version}/gitcompanion_${vNumber}_amd64.deb`
     };
-    
+
     document.getElementById('modal-deb-link').href = downloadLinks["linux-deb"];
     document.getElementById('modal-appimage-link').href = downloadLinks["linux-appimage"];
 
+    // Build a real, copy-pasteable one-liner per platform: download to
+    // ~/Downloads, then (per OS) strip the quarantine flag or mark it
+    // executable, then launch it straight away.
+    const termCommands = {
+      mac: `curl -L -o ~/Downloads/Code-Companion-${vNumber}.dmg ${downloadLinks.mac} && xattr -d com.apple.quarantine ~/Downloads/Code-Companion-${vNumber}.dmg && open ~/Downloads/Code-Companion-${vNumber}.dmg`,
+      win: `curl -L -o "$env:USERPROFILE\\Downloads\\Code-Companion-${vNumber}-portable.exe" ${downloadLinks.win}; & "$env:USERPROFILE\\Downloads\\Code-Companion-${vNumber}-portable.exe"`,
+      linux: `curl -L -o ~/Downloads/Code-Companion-${vNumber}.AppImage ${downloadLinks["linux-appimage"]} && chmod +x ~/Downloads/Code-Companion-${vNumber}.AppImage && ~/Downloads/Code-Companion-${vNumber}.AppImage`
+    };
+    document.querySelectorAll('.term-cmd').forEach(el => {
+      const termOs = el.dataset.termOs;
+      if (termCommands[termOs]) el.innerText = termCommands[termOs];
+    });
+    document.querySelectorAll('.term-row').forEach(row => {
+      row.classList.toggle('active', row.dataset.os === os);
+    });
+
+    // Populate the download popup's direct-download links regardless of
+    // the visitor's detected OS, since the popup shows all platforms
+    // when the OS can't be detected.
+    document.querySelectorAll('.dl-direct-link').forEach(link => {
+      const linkOs = link.dataset.os;
+      if (downloadLinks[linkOs]) link.href = downloadLinks[linkOs];
+    });
+    const dlLinuxDeb = document.getElementById('dl-linux-deb-link');
+    const dlLinuxAppimage = document.getElementById('dl-linux-appimage-link');
+    if (dlLinuxDeb) dlLinuxDeb.href = downloadLinks['linux-deb'];
+    if (dlLinuxAppimage) dlLinuxAppimage.href = downloadLinks['linux-appimage'];
+
+    // The main Download buttons always open the install-options popup
+    // instead of linking straight to a file.
+    const headerBtn = document.getElementById('header-btn');
+    const heroBtn = document.getElementById('hero-btn');
+    if (headerBtn) {
+      headerBtn.href = "#";
+      headerBtn.onclick = showDownloadModal;
+    }
+    if (heroBtn) {
+      heroBtn.href = "#";
+      heroBtn.onclick = showDownloadModal;
+    }
+
     if (os !== "unknown") {
       const btnText = "Download for " + osNames[os];
-      const headerBtn = document.getElementById('header-btn');
-      const heroBtn = document.getElementById('hero-btn');
-
-      if (headerBtn) {
-        headerBtn.textContent = "Download";
-        if (os === "linux") {
-          headerBtn.href = "#";
-          headerBtn.onclick = showLinuxModal;
-        } else {
-          headerBtn.href = downloadLinks[os];
-        }
-      }
+      if (headerBtn) headerBtn.textContent = "Download";
       if (heroBtn) {
         heroBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg> ` + btnText;
-        if (os === "linux") {
-          heroBtn.href = "#";
-          heroBtn.onclick = showLinuxModal;
-        } else {
-          heroBtn.href = downloadLinks[os];
-        }
       }
 
       // Highlight current OS chip and set links for all chips
@@ -636,33 +944,91 @@
           btn.href = downloadLinks[btnOs];
         }
       });
-      
-      if (os === 'mac') {
-        const macCmd = document.getElementById('mac-command');
-        if (macCmd) {
-          macCmd.style.display = 'flex';
-          const cmdText = document.getElementById('mac-cmd-text');
-          if (cmdText) {
-             // Make the path contextually relevant to the downloaded version
-             cmdText.innerText = `xattr -d com.apple.quarantine ~/Downloads/Code-Companion-${vNumber}.dmg`;
-          }
-        }
-      }
+
     }
+
+    // Keep the mac quarantine-removal command's filename in sync with the
+    // latest release, regardless of the visitor's own OS.
+    const macCmdText = `xattr -d com.apple.quarantine ~/Downloads/Code-Companion-${vNumber}.dmg`;
+    document.querySelectorAll('.mac-cmd-text').forEach(el => { el.innerText = macCmdText; });
   }
-  
+
   fetchLatestRelease();
 
-  // Reveal on scroll (3D tilt-in)
-  const revealTargets = document.querySelectorAll('.feature-card, .cta-card');
+  // Reveal on scroll (tilt-in), with a load/resize fallback so content
+  // is never stuck invisible if intersection never fires (e.g. very tall
+  // viewports, print/export views, or automated captures).
+  const revealTargets = document.querySelectorAll('.feature-card, .spotlight-card, .step-card, .cta-card');
   const io = new IntersectionObserver((entries)=>{
     entries.forEach(e=>{
       if(e.isIntersecting){
         e.target.classList.add('in-view');
       }
     });
-  }, { threshold: 0.18, rootMargin: '0px 0px -60px 0px' });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
   revealTargets.forEach(el=>io.observe(el));
+
+  function revealVisible(){
+    const vh = window.innerHeight;
+    revealTargets.forEach(el=>{
+      const rect = el.getBoundingClientRect();
+      if(rect.top < vh * 1.15){ el.classList.add('in-view'); }
+    });
+  }
+  window.addEventListener('load', revealVisible);
+  window.addEventListener('resize', revealVisible);
+  setTimeout(revealVisible, 300);
+
+  // Draw wires from each hero card's actual edge node to a shared
+  // convergence point off to the right, so the lines always stay
+  // physically attached to the cards regardless of viewport size.
+  function drawHeroWires(){
+    const box = document.querySelector('.hero-visual');
+    const svg = document.getElementById('hvSvg');
+    if(!box || !svg || box.offsetParent === null) return;
+    const rect = box.getBoundingClientRect();
+    const cards = [
+      { el: document.getElementById('hvCardMain'), color: 'var(--azure)' },
+      { el: document.getElementById('hvCardRelease'), color: 'var(--terracotta)' }
+    ];
+    const targets = [
+      { x: rect.width - 14, y: rect.height * 0.22 },
+      { x: rect.width - 14, y: rect.height * 0.62 }
+    ];
+
+    svg.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`);
+    svg.innerHTML = '';
+    let firstPath = null;
+
+    cards.forEach(card=>{
+      const anchor = card.el.querySelector('.hv-node-anchor');
+      if(!anchor) return;
+      const aRect = anchor.getBoundingClientRect();
+      const start = { x: aRect.left + aRect.width/2 - rect.left, y: aRect.top + aRect.height/2 - rect.top };
+      targets.forEach(t=>{
+        const midX = (start.x + t.x) / 2;
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', `M ${start.x} ${start.y} C ${midX} ${start.y}, ${midX} ${t.y}, ${t.x} ${t.y}`);
+        path.setAttribute('stroke', card.color);
+        svg.appendChild(path);
+        if(!firstPath) firstPath = path;
+      });
+    });
+
+    targets.forEach(t=>{
+      const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      c.setAttribute('cx', t.x); c.setAttribute('cy', t.y); c.setAttribute('r', 5);
+      c.setAttribute('stroke', 'var(--text-faint)');
+      c.setAttribute('class', 'hv-vertex');
+      svg.appendChild(c);
+    });
+
+    const pulse = document.getElementById('hvPulse');
+    if(pulse && firstPath){ pulse.style.offsetPath = `path('${firstPath.getAttribute('d')}')`; }
+  }
+  window.addEventListener('load', drawHeroWires);
+  window.addEventListener('resize', drawHeroWires);
+  setTimeout(drawHeroWires, 300);
 
   // Size the rail line to full track height
   function sizeRail(){
@@ -686,17 +1052,19 @@
         const g1 = document.getElementById('glow1');
         const g2 = document.getElementById('glow2');
         const g3 = document.getElementById('glow3');
+        const g4 = document.getElementById('glow4');
         if(g1) g1.style.transform = `translate3d(0, ${y*0.06}px, 0)`;
         if(g2) g2.style.transform = `translate3d(0, ${y*-0.04}px, 0)`;
         if(g3) g3.style.transform = `translate3d(0, ${y*0.05}px, 0)`;
+        if(g4) g4.style.transform = `translate3d(0, ${y*-0.03}px, 0)`;
 
         const vh = window.innerHeight;
-        document.querySelectorAll('.feature-card.in-view').forEach(card=>{
+        document.querySelectorAll('.feature-card.in-view, .spotlight-card.in-view').forEach(card=>{
           const rect = card.getBoundingClientRect();
           const center = rect.top + rect.height/2;
-          const progress = (center - vh/2) / (vh/2); // -1 (top) .. 1 (bottom)
+          const progress = (center - vh/2) / (vh/2);
           const clamped = Math.max(-1, Math.min(1, progress));
-          const rotateX = clamped * -6;
+          const rotateX = clamped * -5;
           card.style.transform = `perspective(900px) rotateX(${rotateX}deg)`;
         });
         ticking = false;
