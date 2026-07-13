@@ -1,14 +1,480 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GitCompanion | The Ultimate Git Client</title>
-    <meta name="description" content="A visually stunning, cross-platform desktop application reimagining the Git and GitHub workflow." />
-    <script type="module" crossorigin src="/Code-companion-releases/assets/index-Dx96P4ax.js"></script>
-    <link rel="stylesheet" crossorigin href="/Code-companion-releases/assets/index-Db1Lt9na.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitCompanion — The ultimate Git companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#18160F;
+    --bg-raise:#211D15;
+    --surface:#252017;
+    --surface-2: #2B2519;
+    --line: rgba(242,238,227,0.08);
+    --line-strong: rgba(242,238,227,0.14);
+    --text:#F2EEE3;
+    --text-muted:#A69C89;
+    --text-faint:#7A7160;
+    --terracotta:#C96F4A;
+    --terracotta-soft: rgba(201,111,74,0.14);
+    --sage:#8FA07E;
+    --sage-soft: rgba(143,160,126,0.14);
+    --amber:#D9A441;
+    --amber-soft: rgba(217,164,65,0.14);
+    --radius: 16px;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  ::selection{ background:var(--terracotta); color:var(--bg); }
+
+  a{color:inherit;text-decoration:none;}
+
+  .noise{
+    position:fixed; inset:0; pointer-events:none; z-index:1; opacity:0.035; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .glow{
+    position:fixed; border-radius:50%; filter:blur(90px); pointer-events:none; z-index:0; will-change:transform;
+  }
+  .glow-1{ width:520px; height:520px; background:radial-gradient(circle, rgba(201,111,74,0.22), transparent 70%); top:-100px; right:-120px;}
+  .glow-2{ width:600px; height:600px; background:radial-gradient(circle, rgba(143,160,126,0.14), transparent 70%); top:60vh; left:-160px;}
+  .glow-3{ width:480px; height:480px; background:radial-gradient(circle, rgba(217,164,65,0.16), transparent 70%); top:140vh; right:-100px;}
+
+  /* ---------- Layout shells ---------- */
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; position:relative; z-index:2;}
+
+  header{
+    position:sticky; top:0; z-index:50;
+    backdrop-filter:blur(14px);
+    background:rgba(24,22,15,0.72);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 32px; max-width:1180px; margin:0 auto;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:600; font-size:18px; letter-spacing:-0.01em;}
+  .brand-mark{
+    width:30px;height:30px;border-radius:8px;
+    background:transparent;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 4px 14px rgba(0,0,0,0.35);
+    overflow:hidden;
+  }
+  .brand-mark img{width:100%;height:100%;object-fit:cover;}
+
+  nav .links{ display:flex; gap:32px; font-size:14px; color:var(--text-muted); }
+  nav .links a{ transition:color .2s ease; position:relative; }
+  nav .links a:hover{ color:var(--text); }
+
+  .btn{
+    font-family:var(--font-body); font-weight:600; font-size:14px;
+    padding:11px 20px; border-radius:10px; border:1px solid var(--line-strong);
+    display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+    transition: all .25s ease;
+    background:transparent; color:var(--text);
+  }
+  .btn:hover{ border-color:var(--terracotta); background:var(--terracotta-soft); }
+  .btn-primary{
+    background:linear-gradient(135deg, var(--terracotta), #b85f3c);
+    border:1px solid transparent; color:#18160F;
+    box-shadow:0 8px 22px rgba(201,111,74,0.28);
+  }
+  .btn-primary:hover{ filter:brightness(1.08); transform:translateY(-1px); box-shadow:0 10px 26px rgba(201,111,74,0.4);}
+
+  /* ---------- Hero ---------- */
+  .hero{ padding:120px 0 100px; position:relative; }
+  .eyebrow{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--sage); display:flex; align-items:center; gap:10px; margin-bottom:22px;
+  }
+  .eyebrow .dot{ width:6px;height:6px;border-radius:50%; background:var(--sage); box-shadow:0 0 0 4px var(--sage-soft); animation:pulse 2.4s infinite;}
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+
+  .hero h1{
+    font-family:var(--font-display); font-weight:600; font-size:clamp(44px, 7vw, 78px);
+    line-height:1.03; letter-spacing:-0.02em; max-width:820px;
+  }
+  .hero h1 span{
+    background:linear-gradient(100deg, var(--terracotta), var(--amber) 60%, var(--sage));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hero p.lede{
+    margin-top:26px; font-size:18px; line-height:1.65; color:var(--text-muted); max-width:560px;
+  }
+
+  .hero-actions{ display:flex; gap:14px; margin-top:38px; flex-wrap:wrap; }
+
+  .platform-row{ display:flex; gap:14px; margin-top:46px; flex-wrap:wrap; }
+  .platform-chip{
+    display:flex; align-items:center; gap:12px; padding:14px 18px;
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    font-family:var(--font-mono); font-size:13px; color:var(--text-muted);
+    transition: transform .3s ease, border-color .3s ease, background .3s ease;
+    cursor:pointer;
+  }
+  .platform-chip:hover{ border-color:var(--line-strong); background:var(--surface-2); transform:translateY(-3px); }
+  .platform-chip svg{ width:18px;height:18px; stroke:var(--text); }
+  .platform-chip .pname{ color:var(--text); font-weight:600; font-family:var(--font-body); font-size:14px; }
+
+  /* ---------- Git rail (signature element) ---------- */
+  .rail-track{
+    position:relative;
+    max-width:1180px; margin:0 auto; padding:0 32px;
+  }
+  .rail-line{
+    position:absolute; left:calc(32px + 27px); top:0; bottom:0; width:2px;
+    background:repeating-linear-gradient(to bottom, var(--line-strong) 0 6px, transparent 6px 14px);
+    z-index:1;
+  }
+  .rail-pulse{
+    position:absolute; left:calc(32px + 27px); width:2px; top:0;
+    background:linear-gradient(to bottom, transparent, var(--terracotta), transparent);
+    filter:blur(1px); z-index:1;
+  }
+  .rail-pulse-dot{
+    position:absolute; left:calc(32px + 27px); width:8px;height:8px;border-radius:50%;
+    background:var(--terracotta); box-shadow:0 0 12px 3px rgba(201,111,74,0.6);
+    transform:translateX(-3px); z-index:2;
+    animation: travel 7s linear infinite;
+  }
+  @keyframes travel{
+    0%{ top:0%; opacity:0; }
+    5%{ opacity:1;}
+    95%{ opacity:1;}
+    100%{ top:100%; opacity:0;}
+  }
+
+  section.section{ padding:70px 0; position:relative; z-index:2;}
+  .section-head{ margin-bottom:56px; padding-left:70px; position:relative; }
+  .section-head .node{
+    position:absolute; left:0; top:4px; width:14px;height:14px;border-radius:50%;
+    background:var(--bg); border:2px solid var(--terracotta); z-index:3;
+  }
+  .section-head .hash{
+    font-family:var(--font-mono); font-size:12px; color:var(--text-faint); letter-spacing:0.05em;
+  }
+  .section-head h2{
+    font-family:var(--font-display); font-weight:600; font-size:clamp(28px,4vw,40px);
+    letter-spacing:-0.01em; margin-top:8px;
+  }
+  .section-head p{ color:var(--text-muted); margin-top:10px; max-width:560px; font-size:15px; line-height:1.6;}
+
+  /* ---------- Feature cards along rail ---------- */
+  .feature-row{
+    display:grid; grid-template-columns:1fr 1fr; gap:28px; padding-left:70px;
+  }
+  .feature-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:28px; position:relative;
+    opacity:0; transform: perspective(900px) rotateX(14deg) translateY(50px) scale(.94);
+    transition: opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1);
+    will-change: transform, opacity;
+  }
+  .feature-card.in-view{ opacity:1; transform:none; }
+  .feature-card:hover{ border-color:var(--line-strong); background:var(--surface-2); }
+
+  .feature-card .wire{
+    position:absolute; left:-52px; top:34px; width:52px; height:2px;
+  }
+  .feature-card .wire svg{ overflow:visible; }
+  .feature-card .wire path{
+    stroke-dasharray: 60; stroke-dashoffset:60; transition: stroke-dashoffset 0.9s ease .1s;
+  }
+  .feature-card.in-view .wire path{ stroke-dashoffset:0; }
+
+  .feature-icon{
+    width:44px;height:44px;border-radius:11px; display:flex;align-items:center;justify-content:center;
+    margin-bottom:18px;
+  }
+  .feature-icon svg{ width:22px;height:22px; }
+  .feature-card h3{
+    font-family:var(--font-display); font-size:19px; font-weight:600; margin-bottom:10px; letter-spacing:-0.01em;
+  }
+  .feature-card p{ color:var(--text-muted); font-size:14.5px; line-height:1.6; }
+
+  .tag-terra .feature-icon{ background:var(--terracotta-soft); }
+  .tag-terra svg{ stroke:var(--terracotta); }
+  .tag-sage .feature-icon{ background:var(--sage-soft); }
+  .tag-sage svg{ stroke:var(--sage); }
+  .tag-amber .feature-icon{ background:var(--amber-soft); }
+  .tag-amber svg{ stroke:var(--amber); }
+
+  /* ---------- Final CTA ---------- */
+  .cta-section{ padding:90px 0 120px; text-align:center; position:relative; z-index:2;}
+  .cta-card{
+    max-width:720px; margin:0 auto; padding:60px 40px; border-radius:24px;
+    background:radial-gradient(120% 140% at 50% 0%, var(--surface-2), var(--bg-raise));
+    border:1px solid var(--line-strong);
+    opacity:0; transform:perspective(900px) rotateX(12deg) translateY(40px);
+    transition:opacity .8s ease, transform .8s ease;
+  }
+  .cta-card.in-view{ opacity:1; transform:none; }
+  .cta-icon{
+    width:56px;height:56px;border-radius:16px;margin:0 auto 26px;
+    background:linear-gradient(150deg, var(--terracotta), var(--amber));
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 10px 30px rgba(201,111,74,0.32);
+  }
+  .cta-icon svg{ width:26px;height:26px; stroke:#18160F; }
+  .cta-card h3{ font-family:var(--font-display); font-size:30px; font-weight:600; margin-bottom:12px; }
+  .cta-card p{ color:var(--text-muted); margin-bottom:34px; }
+  .cta-platforms{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+
+  footer{
+    padding:34px 0; border-top:1px solid var(--line); text-align:center;
+    color:var(--text-faint); font-size:13px; position:relative; z-index:2;
+  }
+
+  @media (max-width:760px){
+    .feature-row{ grid-template-columns:1fr; padding-left:44px; }
+    .section-head{ padding-left:44px; }
+    .rail-line, .rail-pulse, .rail-pulse-dot{ left:calc(32px + 1px); }
+    nav .links{ display:none; }
+    .hero{ padding:80px 0 60px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+    .feature-card, .cta-card{ opacity:1 !important; transform:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="noise"></div>
+<div class="glow glow-1" id="glow1"></div>
+<div class="glow glow-2" id="glow2"></div>
+<div class="glow glow-3" id="glow3"></div>
+
+<header>
+  <div class="nav">
+    <div class="brand">
+      <span class="brand-mark">
+        <img src="./icon.png" alt="GitCompanion Icon">
+      </span>
+      GitCompanion
+    </div>
+    <div class="links">
+    </div>
+    <a href="#download" class="btn btn-primary" id="header-btn">Download</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="eyebrow"><span class="dot"></span> Cross-platform · Electron desktop app</div>
+    <h1>The ultimate<br><span>Git companion</span></h1>
+    <p class="lede">A visually stunning desktop app that reimagines the Git and GitHub workflow — live branch graphs, real-time push notifications, and an inline three-way merge editor, all in one place.</p>
+    <div class="hero-actions">
+      <a href="#download" class="btn btn-primary" id="hero-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        Download
+      </a>
+    </div>
+    <div class="platform-row">
+      <div class="platform-chip" data-os="mac">
+        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M17.5 12.5c0-2.2 1.8-3.3 1.9-3.4-1-1.5-2.6-1.7-3.2-1.7-1.4-.1-2.6.8-3.3.8-.7 0-1.7-.8-2.9-.8-1.5 0-2.9.9-3.6 2.2-1.6 2.7-.4 6.7 1.1 8.9.7 1.1 1.6 2.3 2.8 2.3 1.1 0 1.5-.7 2.9-.7s1.7.7 2.9.7c1.2 0 2-1.1 2.7-2.2.6-.9.9-1.7.9-1.8-.1 0-2.2-.8-2.2-3.3Z"/><path d="M14.8 5.4c.5-.7.9-1.6.8-2.5-.8 0-1.8.5-2.4 1.2-.5.6-1 1.6-.8 2.4.9.1 1.8-.5 2.4-1.1Z"/></svg>
+        <div><div class="pname">macOS</div>.dmg</div>
+      </div>
+      <div class="platform-chip" data-os="win">
+        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M8 21h8M12 17v4"/></svg>
+        <div><div class="pname">Windows</div>.exe</div>
+      </div>
+      <div class="platform-chip" data-os="linux">
+        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m8 8-4 4 4 4M16 8l4 4-4 4"/></svg>
+        <div><div class="pname">Linux</div>.AppImage</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="rail-track">
+  <div class="rail-line" id="railLine"></div>
+  <div class="rail-pulse-dot"></div>
+
+  <section class="section" id="features">
+    <div class="section-head">
+      <div class="node"></div>
+      <div class="hash">commit a3f9d2c</div>
+      <h2>Watch your repo come alive</h2>
+      <p>Six features branch off the main line — everything you touch day to day, rendered visually instead of buried in flags.</p>
+    </div>
+
+    <div class="feature-row">
+      <div class="feature-card tag-terra">
+        <div class="wire"><svg width="52" height="2"><path d="M0 1 H52" stroke="#C96F4A" stroke-width="2"/></svg></div>
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="6" cy="6" r="2.4"/><circle cx="6" cy="18" r="2.4"/><circle cx="18" cy="12" r="2.4"/><path d="M6 8.4V15.6M8.2 12H15.8"/></svg></div>
+        <h3>Live repository tree</h3>
+        <p>Branches and collaborators render as an animated, dynamic tree — with ahead/behind counts and diff stats on every card, at a glance.</p>
+      </div>
+      <div class="feature-card tag-amber">
+        <div class="wire"><svg width="52" height="2"><path d="M0 1 H52" stroke="#D9A441" stroke-width="2"/></svg></div>
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
+        <h3>Real-time push notifications</h3>
+        <p>GitHub webhooks paired with a smee.io relay — falling back to polling automatically — deliver native desktop alerts the moment a watched branch updates.</p>
+      </div>
+      <div class="feature-card tag-sage">
+        <div class="wire"><svg width="52" height="2"><path d="M0 1 H52" stroke="#8FA07E" stroke-width="2"/></svg></div>
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M17 2.1 21 6l-4 3.9M3 12v-1a4 4 0 0 1 4-4h14M7 21.9 3 18l4-3.9M21 12v1a4 4 0 0 1-4 4H3"/></svg></div>
+        <h3>Integrated Git operations</h3>
+        <p>Clone, pull, fetch, commit, push and stash from one sync bar — with edge-case handling for detached HEAD, divergent branches and dirty worktrees.</p>
+      </div>
+      <div class="feature-card tag-terra">
+        <div class="wire"><svg width="52" height="2"><path d="M0 1 H52" stroke="#C96F4A" stroke-width="2"/></svg></div>
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M8 3v18M16 3v18M3 8h18M3 16h18"/></svg></div>
+        <h3>Monaco-powered merge editor</h3>
+        <p>Resolve three-way conflicts hunk by hunk with Accept Current, Accept Incoming or Accept Both — right inside the app, no terminal required.</p>
+      </div>
+      <div class="feature-card tag-amber">
+        <div class="wire"><svg width="52" height="2"><path d="M0 1 H52" stroke="#D9A441" stroke-width="2"/></svg></div>
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg></div>
+        <h3>Seamless GitHub auth</h3>
+        <p>Sign in with GitHub's device flow; tokens are encrypted at rest with Electron's safeStorage, and the GitHub CLI installs itself if it's missing.</p>
+      </div>
+      <div class="feature-card tag-sage">
+        <div class="wire"><svg width="52" height="2"><path d="M0 1 H52" stroke="#8FA07E" stroke-width="2"/></svg></div>
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M4 4h7l2 2h7v12H4z"/></svg></div>
+        <h3>Built-in file explorer</h3>
+        <p>A VS Code-style split pane to browse your local repo, with Monaco syntax highlighting and familiar Material icons throughout.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<section class="cta-section" id="download">
+  <div class="wrap">
+    <div class="cta-card">
+      <div class="cta-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#18160F" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></div>
+      <h3>Ready to deploy</h3>
+      <p>Download for your platform to get started.</p>
+      <div class="cta-platforms">
+        <a href="https://github.com/TeZado/Code-companion/releases/latest" class="btn" data-os="mac">macOS · .dmg</a>
+        <a href="https://github.com/TeZado/Code-companion/releases/latest" class="btn" data-os="win">Windows · .exe</a>
+        <a href="https://github.com/TeZado/Code-companion/releases/latest" class="btn" data-os="linux">Linux · .AppImage</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">GitCompanion — built with Electron, React and a little too much attention to animation timing.</div>
+</footer>
+
+<script>
+  // Detect OS for Download button
+  let os = "unknown";
+  if (navigator.userAgent.indexOf("Win") != -1) os = "win";
+  if (navigator.userAgent.indexOf("Mac") != -1) os = "mac";
+  if (navigator.userAgent.indexOf("X11") != -1 || navigator.userAgent.indexOf("Linux") != -1) os = "linux";
+
+  const downloadLinks = {
+    mac: "https://github.com/TeZado/Code-companion/releases/latest",
+    win: "https://github.com/TeZado/Code-companion/releases/latest",
+    linux: "https://github.com/TeZado/Code-companion/releases/latest"
+  };
+
+  const osNames = {
+    mac: "macOS",
+    win: "Windows",
+    linux: "Linux"
+  };
+
+  if (os !== "unknown") {
+    const btnText = "Download for " + osNames[os];
+    const headerBtn = document.getElementById('header-btn');
+    const heroBtn = document.getElementById('hero-btn');
+    
+    if (headerBtn) headerBtn.textContent = "Download";
+    if (heroBtn) heroBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg> ` + btnText;
+
+    // Highlight current OS chip
+    document.querySelectorAll('.platform-chip').forEach(chip => {
+      if (chip.dataset.os === os) {
+        chip.style.borderColor = "var(--terracotta)";
+        chip.style.background = "var(--surface-2)";
+      }
+    });
+
+    // Hide non-matching download buttons in CTA
+    document.querySelectorAll('.cta-platforms .btn').forEach(btn => {
+      if (btn.dataset.os !== os) {
+        btn.style.display = 'none';
+      }
+    });
+  }
+
+  // Reveal on scroll (3D tilt-in)
+  const revealTargets = document.querySelectorAll('.feature-card, .cta-card');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        e.target.classList.add('in-view');
+      }
+    });
+  }, { threshold: 0.18, rootMargin: '0px 0px -60px 0px' });
+  revealTargets.forEach(el=>io.observe(el));
+
+  // Size the rail line to full track height
+  function sizeRail(){
+    const track = document.querySelector('.rail-track');
+    const line = document.getElementById('railLine');
+    if(track && line){ line.style.height = track.offsetHeight + 'px'; }
+  }
+  window.addEventListener('load', sizeRail);
+  window.addEventListener('resize', sizeRail);
+  setTimeout(sizeRail, 400);
+
+  // Ambient parallax on glow orbs + subtle per-card 3D tilt tied to scroll position
+  let ticking = false;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function onScroll(){
+    if(reduceMotion) return;
+    if(!ticking){
+      requestAnimationFrame(()=>{
+        const y = window.scrollY;
+        const g1 = document.getElementById('glow1');
+        const g2 = document.getElementById('glow2');
+        const g3 = document.getElementById('glow3');
+        if(g1) g1.style.transform = `translate3d(0, ${y*0.06}px, 0)`;
+        if(g2) g2.style.transform = `translate3d(0, ${y*-0.04}px, 0)`;
+        if(g3) g3.style.transform = `translate3d(0, ${y*0.05}px, 0)`;
+
+        const vh = window.innerHeight;
+        document.querySelectorAll('.feature-card.in-view').forEach(card=>{
+          const rect = card.getBoundingClientRect();
+          const center = rect.top + rect.height/2;
+          const progress = (center - vh/2) / (vh/2); // -1 (top) .. 1 (bottom)
+          const clamped = Math.max(-1, Math.min(1, progress));
+          const rotateX = clamped * -6;
+          card.style.transform = `perspective(900px) rotateX(${rotateX}deg)`;
+        });
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }
+  window.addEventListener('scroll', onScroll, { passive:true });
+</script>
+
+</body>
 </html>
