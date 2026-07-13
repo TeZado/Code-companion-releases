@@ -44,9 +44,9 @@ function Scene() {
 
 function App() {
   const downloadLinks = {
-    mac: "https://github.com/TeZado/Code-companion/releases/latest/download/GitCompanion-mac.dmg",
-    win: "https://github.com/TeZado/Code-companion/releases/latest/download/GitCompanion-win.exe",
-    linux: "https://github.com/TeZado/Code-companion/releases/latest/download/GitCompanion-linux.AppImage"
+    mac: "https://github.com/TeZado/Code-companion/releases/latest",
+    win: "https://github.com/TeZado/Code-companion/releases/latest",
+    linux: "https://github.com/TeZado/Code-companion/releases/latest"
   };
 
   return (
@@ -66,17 +66,6 @@ function App() {
             </div>
             GitCompanion
           </motion.div>
-          <motion.a 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            href="https://github.com/TeZado/Code-companion" 
-            target="_blank" 
-            rel="noreferrer"
-            className="px-6 py-2 rounded-full border border-white/10 hover:bg-white/5 transition-colors flex items-center gap-2 font-medium"
-          >
-            <Github size={18} />
-            View Source
-          </motion.a>
         </nav>
 
         {/* Hero Section */}
