@@ -97,7 +97,12 @@
     border:1px solid transparent; color:#18160F;
     box-shadow:0 8px 22px rgba(201,111,74,0.28);
   }
-  .btn-primary:hover{ filter:brightness(1.08); transform:translateY(-1px); box-shadow:0 10px 26px rgba(201,111,74,0.4);}
+  .btn-primary:hover{ 
+    background:linear-gradient(135deg, var(--terracotta), #b85f3c); 
+    filter:brightness(1.08); 
+    transform:translateY(-1px); 
+    box-shadow:0 10px 26px rgba(201,111,74,0.4);
+  }
 
   /* ---------- Hero ---------- */
   .hero{ padding:120px 0 100px; position:relative; }
@@ -190,6 +195,7 @@
   }
   .feature-card.in-view{ opacity:1; transform:none; }
   .feature-card:hover{ border-color:var(--line-strong); background:var(--surface-2); }
+  .feature-card:nth-child(even) .wire { display: none; }
 
   .feature-card .wire{
     position:absolute; left:-52px; top:34px; width:52px; height:2px;
@@ -241,6 +247,12 @@
   footer{
     padding:34px 0; border-top:1px solid var(--line); text-align:center;
     color:var(--text-faint); font-size:13px; position:relative; z-index:2;
+  }
+  .footer-content {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .footer-avatar {
+    width: 24px; height: 24px; border-radius: 50%; object-fit: cover;
   }
 
   @media (max-width:760px){
@@ -376,7 +388,10 @@
 </section>
 
 <footer>
-  <div class="wrap">GitCompanion — built with Electron, React and a little too much attention to animation timing.</div>
+  <div class="wrap footer-content">
+    GitCompanion — Built by Hrishikesh Jadhav
+    <img src="https://github.com/TeZado.png" alt="TeZado" class="footer-avatar">
+  </div>
 </footer>
 
 <script>
@@ -386,41 +401,66 @@
   if (navigator.userAgent.indexOf("Mac") != -1) os = "mac";
   if (navigator.userAgent.indexOf("X11") != -1 || navigator.userAgent.indexOf("Linux") != -1) os = "linux";
 
-  const downloadLinks = {
-    mac: "https://github.com/TeZado/Code-companion/releases/latest",
-    win: "https://github.com/TeZado/Code-companion/releases/latest",
-    linux: "https://github.com/TeZado/Code-companion/releases/latest"
-  };
-
   const osNames = {
     mac: "macOS",
     win: "Windows",
     linux: "Linux"
   };
 
-  if (os !== "unknown") {
-    const btnText = "Download for " + osNames[os];
-    const headerBtn = document.getElementById('header-btn');
-    const heroBtn = document.getElementById('hero-btn');
+  async function fetchLatestRelease() {
+    let version = "v1.0.8"; // Default fallback
+    try {
+      const res = await fetch("https://api.github.com/repos/TeZado/Code-companion/releases/latest");
+      const data = await res.json();
+      if (data.tag_name) {
+        version = data.tag_name;
+      }
+    } catch (e) {
+      console.error("Failed to fetch latest release", e);
+    }
     
-    if (headerBtn) headerBtn.textContent = "Download";
-    if (heroBtn) heroBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg> ` + btnText;
+    const vNumber = version.startsWith("v") ? version.substring(1) : version;
+    
+    const downloadLinks = {
+      mac: `https://github.com/TeZado/Code-companion/releases/download/${version}/Code-Companion-${vNumber}.dmg`,
+      win: `https://github.com/TeZado/Code-companion/releases/download/${version}/Code-Companion-${vNumber}-portable.exe`,
+      linux: `https://github.com/TeZado/Code-companion/releases/download/${version}/gitcompanion_${vNumber}_amd64.deb`
+    };
 
-    // Highlight current OS chip
-    document.querySelectorAll('.platform-chip').forEach(chip => {
-      if (chip.dataset.os === os) {
-        chip.style.borderColor = "var(--terracotta)";
-        chip.style.background = "var(--surface-2)";
+    if (os !== "unknown") {
+      const btnText = "Download for " + osNames[os];
+      const headerBtn = document.getElementById('header-btn');
+      const heroBtn = document.getElementById('hero-btn');
+      
+      if (headerBtn) {
+        headerBtn.textContent = "Download";
+        headerBtn.href = downloadLinks[os];
       }
-    });
+      if (heroBtn) {
+        heroBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg> ` + btnText;
+        heroBtn.href = downloadLinks[os];
+      }
 
-    // Hide non-matching download buttons in CTA
-    document.querySelectorAll('.cta-platforms .btn').forEach(btn => {
-      if (btn.dataset.os !== os) {
-        btn.style.display = 'none';
-      }
-    });
+      // Highlight current OS chip
+      document.querySelectorAll('.platform-chip').forEach(chip => {
+        if (chip.dataset.os === os) {
+          chip.style.borderColor = "var(--terracotta)";
+          chip.style.background = "var(--surface-2)";
+        }
+      });
+
+      // Hide non-matching download buttons in CTA and update links
+      document.querySelectorAll('.cta-platforms .btn').forEach(btn => {
+        if (btn.dataset.os !== os) {
+          btn.style.display = 'none';
+        } else {
+          btn.href = downloadLinks[btn.dataset.os];
+        }
+      });
+    }
   }
+  
+  fetchLatestRelease();
 
   // Reveal on scroll (3D tilt-in)
   const revealTargets = document.querySelectorAll('.feature-card, .cta-card');
