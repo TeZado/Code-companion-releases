@@ -867,7 +867,7 @@
 
     const downloadLinks = {
       mac: `https://github.com/TeZado/Code-companion-releases/releases/download/${version}/Code-Companion-${vNumber}.dmg`,
-      win: `https://github.com/TeZado/Code-companion-releases/releases/download/${version}/Code-Companion-${vNumber}-portable.exe`,
+      win: `https://github.com/TeZado/Code-companion-releases/releases/download/${version}/Code-Companion-${vNumber}-setup.exe`,
       "linux-appimage": `https://github.com/TeZado/Code-companion-releases/releases/download/${version}/Code-Companion-${vNumber}.AppImage`,
       "linux-deb": `https://github.com/TeZado/Code-companion-releases/releases/download/${version}/code-companion_${vNumber}_amd64.deb`
     };
@@ -880,7 +880,7 @@
     // executable, then launch it straight away.
     const termCommands = {
       mac: `curl -L -o ~/Downloads/Code-Companion-${vNumber}.dmg ${downloadLinks.mac} && xattr -d com.apple.quarantine ~/Downloads/Code-Companion-${vNumber}.dmg && open ~/Downloads/Code-Companion-${vNumber}.dmg`,
-      win: `curl -L -o "$env:USERPROFILE\\Downloads\\Code-Companion-${vNumber}-portable.exe" ${downloadLinks.win}; & "$env:USERPROFILE\\Downloads\\Code-Companion-${vNumber}-portable.exe"`,
+      win: `curl -L -o "$env:USERPROFILE\\Downloads\\Code-Companion-${vNumber}-setup.exe" ${downloadLinks.win}; & "$env:USERPROFILE\\Downloads\\Code-Companion-${vNumber}-setup.exe"`,
       linux: `curl -L -o ~/Downloads/Code-Companion-${vNumber}.AppImage ${downloadLinks["linux-appimage"]} && chmod +x ~/Downloads/Code-Companion-${vNumber}.AppImage && ~/Downloads/Code-Companion-${vNumber}.AppImage`
     };
     document.querySelectorAll('.term-cmd').forEach(el => {
