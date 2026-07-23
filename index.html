@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Code Companion — The ultimate Git companion</title>
-<meta name="description" content="A desktop app that turns Git into a living, draggable canvas — real-time push alerts, an inline three-way merge editor, and commit messages drafted for you.">
+<title>Code Companion — Code, Git &amp; Agent modes in one app</title>
+<meta name="description" content="A desktop app with three modes in one: a full VS Code-style editor with real extension support, a living git canvas with visual merges, and up to three concurrent Claude agent sessions.">
 <link rel="icon" type="image/png" href="./icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -217,6 +217,10 @@
   .hv-card .hv-meta{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-faint); }
   .hv-card .hv-meta .hv-avatar{ width:16px;height:16px;border-radius:50%; display:flex;align-items:center;justify-content:center; background:var(--surface-3); }
   .hv-card .hv-meta .hv-avatar svg{ width:10px;height:10px; }
+  .hv-tabstrip{ display:flex; gap:4px; margin-bottom:10px; }
+  .hv-tab{ font-family:var(--font-mono); font-size:10px; padding:4px 8px; border-radius:5px 5px 0 0; background:var(--surface-2); color:var(--text-faint); }
+  .hv-tab.active{ background:var(--surface-3); color:var(--text); }
+  .hv-mockline{ height:7px; border-radius:4px; background:var(--line-strong); margin-bottom:7px; }
   .hv-node-anchor{ position:absolute; right:-4px; top:50%; transform:translateY(-50%); width:8px;height:8px;border-radius:50%; z-index:4; box-shadow:0 0 0 3px var(--bg); }
   .hv-card-main{ top:14%; left:8%; }
   .hv-card-main .b-dot, .hv-card-main .hv-node-anchor{ background:var(--azure); }
@@ -249,41 +253,54 @@
   }
   .section-head p{ color:var(--text-muted); margin-top:10px; max-width:560px; font-size:15px; line-height:1.6;}
 
-  /* ---------- Workflow steps ---------- */
-  .step-row{ padding-left:70px; display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
-  .step-card{
-    background:rgba(37,32,23,0.4); backdrop-filter:blur(12px);
-    border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:28px;
-    position:relative;
-    opacity:0; transform: translateY(28px);
-    transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1);
-  }
-  .step-card.in-view{ opacity:1; transform:none; }
-  .step-num{ font-family:var(--font-mono); font-size:12px; color:var(--text-faint); margin-bottom:14px; }
-  .step-card h4{ font-family:var(--font-display); font-size:18px; font-weight:600; margin-bottom:10px; }
-  .step-card p{ color:var(--text-muted); font-size:14px; line-height:1.6; }
-  .step-arrow{ position:absolute; right:-24px; top:50%; transform:translateY(-50%); color:var(--text-faint); z-index:2; }
-
-  /* ---------- Spotlight feature cards ---------- */
-  .spotlight-row{ padding-left:70px; display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-bottom:24px; }
-  .spotlight-card{
+  /* ---------- Mode pillars (Code / Git / Agent) ---------- */
+  .modes-row{ padding-left:70px; display:grid; grid-template-columns:1.25fr 1fr 1fr; gap:24px; align-items:stretch; }
+  .mode-pillar{
     background:linear-gradient(160deg, rgba(43,37,25,0.7), rgba(37,32,23,0.4));
     backdrop-filter:blur(12px);
     border:1px solid rgba(255,255,255,0.08); border-radius:22px;
-    padding:30px; position:relative; overflow:hidden;
+    padding:30px; position:relative; overflow:hidden; display:flex; flex-direction:column;
     box-shadow:0 4px 24px rgba(0,0,0,0.2);
     opacity:0; transform: perspective(900px) rotateX(10deg) translateY(40px);
     transition: opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1), border-color .3s, background .3s;
   }
-  .spotlight-card.in-view{ opacity:1; transform:none; }
-  .spotlight-card:hover{ border-color:rgba(255,255,255,0.16); box-shadow:0 14px 40px rgba(0,0,0,0.35); }
-  .spotlight-card .spot-glow{
-    position:absolute; width:200px; height:200px; border-radius:50%; filter:blur(60px); top:-60px; right:-60px; z-index:0; opacity:0.5;
+  .mode-pillar.in-view{ opacity:1; transform:none; }
+  .mode-pillar:hover{ border-color:rgba(255,255,255,0.16); box-shadow:0 14px 40px rgba(0,0,0,0.35); }
+  .mode-pillar-flagship{ border-color:var(--terracotta-soft); background:linear-gradient(160deg, rgba(201,111,74,0.12), rgba(37,32,23,0.5)); }
+  .mode-label{
+    font-family:var(--font-mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+    padding:4px 10px; border-radius:20px; display:inline-flex; width:fit-content; margin-bottom:16px;
   }
-  .spotlight-card .feature-icon{ position:relative; z-index:1; width:48px;height:48px;border-radius:12px; display:flex;align-items:center;justify-content:center; margin-bottom:20px;}
-  .spotlight-card .feature-icon svg{ width:24px;height:24px; }
-  .spotlight-card h3{ position:relative; z-index:1; font-family:var(--font-display); font-size:20px; font-weight:600; margin-bottom:10px; letter-spacing:-0.01em; }
-  .spotlight-card p{ position:relative; z-index:1; color:var(--text-muted); font-size:14.5px; line-height:1.65; }
+  .mode-label-terra{ color:var(--terracotta); background:var(--terracotta-soft); }
+  .mode-label-sage{ color:var(--sage); background:var(--sage-soft); }
+  .mode-label-azure{ color:var(--azure); background:var(--azure-soft); }
+  .mode-pillar h3{ font-family:var(--font-display); font-size:21px; font-weight:600; margin-bottom:10px; letter-spacing:-0.01em; }
+  .mode-desc{ color:var(--text-muted); font-size:14.5px; line-height:1.6; margin-bottom:20px; }
+  .mode-bullets{ list-style:none; display:flex; flex-direction:column; gap:9px; margin-top:16px; }
+  .mode-bullets li{ font-size:13px; color:var(--text-muted); display:flex; gap:8px; align-items:flex-start; line-height:1.5; }
+  .mode-bullets li::before{ content:"›"; color:var(--text-faint); font-weight:700; flex-shrink:0; }
+
+  .mode-mockup{ border-radius:14px; overflow:hidden; margin-bottom:20px; background:rgba(24,22,15,0.55); border:1px solid var(--line); }
+  .mode-mockup.desktop-only{ display:flex; flex-direction:column; }
+  .code-mockup-tabs{ display:flex; gap:4px; padding:10px 12px; border-bottom:1px solid var(--line); }
+  .code-mockup-tab{ font-family:var(--font-mono); font-size:10.5px; padding:5px 10px; border-radius:6px 6px 0 0; background:var(--surface-2); color:var(--text-faint); }
+  .code-mockup-tab.active{ background:var(--surface-3); color:var(--text); }
+  .code-mockup-body{ padding:14px; display:flex; flex-direction:column; gap:8px; }
+  .code-mockup-line{ height:8px; border-radius:4px; background:var(--line-strong); }
+  .code-mockup-ext{ display:flex; align-items:center; gap:8px; padding:10px 12px; border-top:1px solid var(--line); font-family:var(--font-mono); font-size:11px; color:var(--sage); }
+  .code-mockup-ext .dot{ width:6px;height:6px;border-radius:50%; background:var(--sage); box-shadow:0 0 8px 2px rgba(143,160,126,.6); animation:pulse 2.4s infinite; }
+
+  .git-mockup{ padding:16px; display:flex; flex-direction:column; gap:11px; }
+  .git-mockup-row{ display:flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:11.5px; color:var(--text-muted); }
+  .git-mockup-row .b-dot{ width:7px;height:7px;border-radius:50%; flex-shrink:0; }
+  .git-mockup-row.main{ padding-left:0; } .git-mockup-row.main .b-dot{ background:var(--azure); }
+  .git-mockup-row.feature{ padding-left:14px; } .git-mockup-row.feature .b-dot{ background:var(--sage); }
+  .git-mockup-row.merge{ padding-left:0; } .git-mockup-row.merge .b-dot{ background:var(--terracotta); }
+
+  .agent-mockup{ padding:14px; }
+  .agent-mockup .term-row{ margin-bottom:8px; }
+  .agent-mockup-stat{ display:flex; justify-content:space-between; align-items:center; font-family:var(--font-mono); font-size:11px; color:var(--text-faint); padding:2px 4px 0; }
+  .agent-mockup-stat .tok{ color:var(--azure); }
 
   /* ---------- Feature grid cards ---------- */
   .feature-row{
@@ -438,8 +455,7 @@
   @media (max-width:980px){
     .hero-grid{ grid-template-columns:1fr; }
     .hero-visual{ height:380px; }
-    .spotlight-row, .step-row{ grid-template-columns:1fr; }
-    .step-arrow{ display:none; }
+    .modes-row{ grid-template-columns:1fr; }
     .feature-row{ grid-template-columns:1fr 1fr; }
   }
 
@@ -447,20 +463,19 @@
     .desktop-only { display: none !important; }
     .mobile-only { display: flex !important; }
     .feature-row{ grid-template-columns:1fr; padding-left:44px; }
-    .spotlight-row{ padding-left:44px; }
-    .step-row{ padding-left:44px; }
+    .modes-row{ padding-left:44px; }
     .flow-grid{ padding-left:44px; }
     .flow-card{ flex-direction:column; text-align:center; }
     .section-head{ padding-left:44px; }
     .rail-line{ left:calc(32px + 1px); }
-    nav .links{ display:none; }
+    .nav .links{ display:none; }
     .hero{ padding:80px 0 60px; }
     .hero-visual{ display:none; }
   }
 
   @media (prefers-reduced-motion: reduce){
     *{ animation:none !important; transition:none !important; }
-    .feature-card, .spotlight-card, .step-card, .cta-card{ opacity:1 !important; transform:none !important; }
+    .feature-card, .mode-pillar, .cta-card{ opacity:1 !important; transform:none !important; }
   }
 </style>
 </head>
@@ -481,8 +496,8 @@
       Code Companion
     </div>
     <div class="links">
+      <a href="#modes">Modes</a>
       <a href="#features">Features</a>
-      <a href="#workflow">Workflow</a>
       <a href="#security">Security</a>
     </div>
     <a href="#download" class="btn btn-primary desktop-only" id="header-btn">Download</a>
@@ -493,9 +508,9 @@
   <section class="hero">
     <div class="hero-grid">
       <div>
-        <div class="eyebrow"><span class="dot"></span> Local-first · Cross-platform</div>
+        <div class="eyebrow"><span class="dot"></span> Code · Git · Agent — one desktop app</div>
         <h1>The ultimate<br><span>Code Companion</span></h1>
-        <p class="lede">A desktop app that turns Git into a living, draggable canvas — real-time push alerts, an inline three-way merge editor, and commit messages drafted for you. No terminal required.</p>
+        <p class="lede">A full VS Code-style editor with real extension support, a living git canvas with visual merges, and up to three concurrent Claude agent sessions — all in one desktop app. No terminal required to get started.</p>
         <div class="hero-actions desktop-only">
           <a href="#download" class="btn btn-primary" id="hero-btn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
@@ -528,25 +543,27 @@
 
         <div class="hv-card hv-card-main" id="hvCardMain">
           <div class="hv-top">
-            <div class="hv-branch"><span class="b-dot"></span>main</div>
+            <div class="hv-branch"><span class="b-dot"></span>Code Mode</div>
           </div>
-          <p>feat: connect your first repo</p>
-          <div class="hv-meta">
-            <span class="hv-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"><path d="M12 3v13m0 0-4-4m4 4 4-4"/></svg></span>
-            Updated 14 minutes ago
+          <div class="hv-tabstrip">
+            <span class="hv-tab active">layoutStore.ts</span>
+            <span class="hv-tab">App.tsx</span>
+            <span class="hv-tab">·</span>
           </div>
+          <div class="hv-mockline" style="width:78%;"></div>
+          <div class="hv-mockline" style="width:52%;"></div>
+          <div class="hv-mockline" style="width:66%;"></div>
           <span class="hv-node-anchor"></span>
         </div>
 
         <div class="hv-card hv-card-release" id="hvCardRelease">
           <div class="hv-top">
-            <div class="hv-branch"><span class="b-dot"></span>release</div>
-            <div class="hv-stat">+3 −3</div>
+            <div class="hv-branch"><span class="b-dot"></span>Extension Host</div>
           </div>
-          <p>chore: bump version to 1.0.10</p>
+          <p>Claude extension active</p>
           <div class="hv-meta">
-            <span class="hv-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg></span>
-            github-actions · 2 hours ago
+            <span class="hv-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"><path d="M12 3v13m0 0-4-4m4 4 4-4"/></svg></span>
+            LSP · Debug · SCM connected
           </div>
           <span class="hv-node-anchor"></span>
         </div>
@@ -559,34 +576,77 @@
 <div class="rail-track">
   <div class="rail-line" id="railLine"></div>
 
-  <section class="section" id="workflow">
+  <section class="section" id="modes">
     <div class="section-head">
       <div class="node"></div>
-      <div class="hash">commit 1a2b3c4</div>
-      <h2>Three steps, zero terminal</h2>
-      <p>From cloning a repo to shipping a resolved merge, the whole loop happens on one canvas.</p>
+      <div class="hash">commit 6e7f108</div>
+      <h2>One app, three ways to work</h2>
+      <p>Code Mode is the primary shell — a full VS Code-style editor that runs real extensions. Git and Agent live as tabs right inside it.</p>
     </div>
-    <div class="step-row">
-      <div class="step-card">
-        <div class="step-num">01</div>
-        <h4>Connect a repo</h4>
-        <p>Point it at a local folder or clone straight from GitHub. It shows up as a live card on your canvas in seconds.</p>
-        <span class="step-arrow desktop-only">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </span>
+    <div class="modes-row">
+      <div class="mode-pillar mode-pillar-flagship">
+        <span class="mode-label mode-label-terra">Flagship · New in 2.0</span>
+        <div class="mode-mockup desktop-only">
+          <div class="code-mockup-tabs">
+            <span class="code-mockup-tab active">layoutStore.ts</span>
+            <span class="code-mockup-tab">App.tsx</span>
+          </div>
+          <div class="code-mockup-body">
+            <div class="code-mockup-line" style="width:82%;"></div>
+            <div class="code-mockup-line" style="width:56%;"></div>
+            <div class="code-mockup-line" style="width:70%;"></div>
+            <div class="code-mockup-line" style="width:40%;"></div>
+          </div>
+          <div class="code-mockup-ext"><span class="dot"></span>Claude extension · active</div>
+        </div>
+        <h3>A full editor, not a diff viewer</h3>
+        <p class="mode-desc">A multi-pane Monaco editor with a real, sandboxed VS Code extension host underneath — so extensions you already use just work, including the official Claude extension.</p>
+        <ul class="mode-bullets">
+          <li>Multi-pane Monaco editor, quick-open &amp; integrated terminal</li>
+          <li>Real extension host — LSP, debugging, tasks, SCM, webviews</li>
+          <li>TextMate grammars, themes &amp; snippets out of the box</li>
+          <li>Open any local folder — no GitHub login required</li>
+        </ul>
       </div>
-      <div class="step-card">
-        <div class="step-num">02</div>
-        <h4>Watch it move</h4>
-        <p>Every push, pull, and merge animates through the graph in real time, with a native alert the moment something changes.</p>
-        <span class="step-arrow desktop-only">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </span>
+
+      <div class="mode-pillar">
+        <span class="mode-label mode-label-sage">Core</span>
+        <div class="mode-mockup desktop-only">
+          <div class="git-mockup">
+            <div class="git-mockup-row main"><span class="b-dot"></span>main · synced</div>
+            <div class="git-mockup-row feature"><span class="b-dot"></span>feature/code-mode</div>
+            <div class="git-mockup-row merge"><span class="b-dot"></span>merge · 3-way resolved</div>
+          </div>
+        </div>
+        <h3>Git you can actually see</h3>
+        <p class="mode-desc">An animated, real-time repo tree turns branches and merges into something you watch happen, not something you infer from logs.</p>
+        <ul class="mode-bullets">
+          <li>Live, filesystem-watcher-driven repo tree</li>
+          <li>Branch, merge, stash, undo &amp; diff, all local</li>
+          <li>VS Code-style 3-way merge editor (ours/theirs/both)</li>
+          <li>One-click repo cloning</li>
+        </ul>
       </div>
-      <div class="step-card">
-        <div class="step-num">03</div>
-        <h4>Resolve, then ship</h4>
-        <p>Handle conflicts visually, write a commit — or let one be drafted for you — and push, without ever leaving the canvas.</p>
+
+      <div class="mode-pillar">
+        <span class="mode-label mode-label-azure">AI-native</span>
+        <div class="mode-mockup desktop-only">
+          <div class="agent-mockup">
+            <div class="term-row active">
+              <div class="term-row-top"><span class="term-os-tag">Session 1</span></div>
+              <div class="term-cmd-wrap"><code class="term-cmd">claude "fix tests"</code></div>
+            </div>
+            <div class="agent-mockup-stat"><span>3 sessions</span><span class="tok">12.4k tok</span></div>
+          </div>
+        </div>
+        <h3>Run your agents, watch them work</h3>
+        <p class="mode-desc">A docked panel runs multiple Claude Code sessions side by side, with live token tracking and file-edit hooks so you always know what changed.</p>
+        <ul class="mode-bullets">
+          <li>Up to 3 concurrent Claude CLI sessions per repo</li>
+          <li>Live token usage tracking</li>
+          <li>File-edit hooks tied back into the editor</li>
+          <li>Animated agent-activity indicators</li>
+        </ul>
       </div>
     </div>
   </section>
@@ -595,46 +655,25 @@
     <div class="section-head">
       <div class="node"></div>
       <div class="hash">commit a3f9d2c</div>
-      <h2>A canvas for how you actually work</h2>
-      <p>Nine features branch off the main line — everything you touch day to day, rendered visually instead of buried in flags.</p>
-    </div>
-
-    <div class="spotlight-row">
-      <div class="spotlight-card">
-        <div class="spot-glow" style="background:radial-gradient(circle, var(--azure), transparent 70%);"></div>
-        <div class="feature-icon" style="background:var(--azure-soft);"><svg viewBox="0 0 24 24" fill="none" stroke="var(--azure)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="6" cy="6" r="2.4"/><circle cx="6" cy="18" r="2.4"/><circle cx="18" cy="12" r="2.4"/><path d="M6 8.4V15.6M8.2 12H15.8"/></svg></div>
-        <h3>Live repository tree</h3>
-        <p>Branches and collaborators render as an animated, dynamic map — with ahead/behind counts and diff stats on every card, at a glance.</p>
-      </div>
-      <div class="spotlight-card">
-        <div class="spot-glow" style="background:radial-gradient(circle, var(--terracotta), transparent 70%);"></div>
-        <div class="feature-icon tag-terra"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg></div>
-        <h3>Freeform canvas control</h3>
-        <p>Drag cards anywhere, auto-arrange, sort, merge, or fix overlaps with one click — the graph bends to how you think, with tactile physics-driven connectors.</p>
-      </div>
-      <div class="spotlight-card">
-        <div class="spot-glow" style="background:radial-gradient(circle, var(--sage), transparent 70%);"></div>
-        <div class="feature-icon tag-sage"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M8 3v18M16 3v18M3 8h18M3 16h18"/></svg></div>
-        <h3>Visual merge &amp; diff editor</h3>
-        <p>Resolve three-way conflicts hunk by hunk with Accept Current, Accept Incoming, or Accept Both — plus a dedicated overlay to review any commit's diff.</p>
-      </div>
+      <h2>Everything else, built in</h2>
+      <p>The features that support all three modes — GitHub integration, AI assistance, and the small things that make it feel like an app instead of a tool.</p>
     </div>
 
     <div class="feature-row">
       <div class="feature-card tag-amber">
         <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
-        <h3>Real-time push notifications</h3>
+        <h3>Webhook push notifications</h3>
         <p>Get a native desktop alert the instant a watched branch updates, with the author and commit message ready to read.</p>
       </div>
       <div class="feature-card tag-sage">
-        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M17 2.1 21 6l-4 3.9M3 12v-1a4 4 0 0 1 4-4h14M7 21.9 3 18l4-3.9M21 12v1a4 4 0 0 1-4 4H3"/></svg></div>
-        <h3>Full git sync workflow</h3>
-        <p>Clone, pull, fetch, commit, push and stash from one sync bar, with edge-case handling for detached HEAD, divergent branches, and dirty worktrees. Pre-commit hook failures surface cleanly right in the UI.</p>
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3>Pull requests &amp; teams</h3>
+        <p>Browse and open PRs, manage collaborators and teams, all without leaving the app.</p>
       </div>
       <div class="feature-card tag-amber">
         <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 3l1.2 3.6L17 8l-3.8 1.4L12 13l-1.2-3.6L7 8l3.8-1.4L12 3z"/><path d="M19 14l.7 2.1L22 17l-2.3.9L19 20l-.7-2.1L16 17l2.3-.9L19 14z"/></svg></div>
         <h3>AI-assisted commit messages</h3>
-        <p>Get a commit message drafted straight from your staged changes — ready to edit, or send as-is.</p>
+        <p>Get a Gemini-powered commit message drafted straight from your staged changes — ready to edit, or send as-is.</p>
       </div>
       <div class="feature-card tag-terra">
         <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a6 6 0 0 1 6-6h1"/><path d="M17 21l2 2 4-4"/></svg></div>
@@ -642,14 +681,14 @@
         <p>Device-flow authentication keeps your GitHub identity in sync automatically — no manual setup, no copy-pasted tokens.</p>
       </div>
       <div class="feature-card tag-sage">
-        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M4 4h7l2 2h7v12H4z"/></svg></div>
-        <h3>Built-in file explorer</h3>
-        <p>A split-pane view of your local repo with full syntax highlighting, so you can inspect files without leaving the app.</p>
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></div>
+        <h3>Auto-updates, always current</h3>
+        <p>Code Companion checks for and installs new releases in the background, so you're never running a stale build.</p>
       </div>
       <div class="feature-card tag-azure">
-        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
-        <h3>One workspace, every repo</h3>
-        <p>A dashboard for all your repositories, plus one click to connect any local folder or spin up a brand-new repo.</p>
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>
+        <h3>Tray, launch &amp; ambience</h3>
+        <p>Lives in your system tray with launch-on-login, plus optional rain and snow effects for the workspace.</p>
       </div>
     </div>
   </section>
@@ -958,7 +997,7 @@
   // Reveal on scroll (tilt-in), with a load/resize fallback so content
   // is never stuck invisible if intersection never fires (e.g. very tall
   // viewports, print/export views, or automated captures).
-  const revealTargets = document.querySelectorAll('.feature-card, .spotlight-card, .step-card, .cta-card');
+  const revealTargets = document.querySelectorAll('.feature-card, .mode-pillar, .cta-card');
   const io = new IntersectionObserver((entries)=>{
     entries.forEach(e=>{
       if(e.isIntersecting){
@@ -1059,7 +1098,7 @@
         if(g4) g4.style.transform = `translate3d(0, ${y*-0.03}px, 0)`;
 
         const vh = window.innerHeight;
-        document.querySelectorAll('.feature-card.in-view, .spotlight-card.in-view').forEach(card=>{
+        document.querySelectorAll('.feature-card.in-view, .mode-pillar.in-view').forEach(card=>{
           const rect = card.getBoundingClientRect();
           const center = rect.top + rect.height/2;
           const progress = (center - vh/2) / (vh/2);
