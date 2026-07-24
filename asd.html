@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Companion — Code, Git & AI in One App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #111118;
+            --bg-tertiary: #1a1a24;
+            --bg-card: #13131c;
+            --bg-card-hover: #1a1a28;
+            --border: rgba(255,255,255,0.06);
+            --border-hover: rgba(255,255,255,0.12);
+            --text-primary: #f0f0f5;
+            --text-secondary: #8a8a9a;
+            --text-muted: #5a5a6a;
+            --accent: #6366f1;
+            --accent-light: #818cf8;
+            --accent-glow: rgba(99, 102, 241, 0.15);
+            --accent-secondary: #10b981;
+            --accent-tertiary: #f59e0b;
+            --gradient-start: #6366f1;
+            --gradient-end: #8b5cf6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Noise texture overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 9999;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 1rem 2rem;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        nav.scrolled {
+            background: rgba(10, 10, 15, 0.95);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.4rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: white;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-hover);
+        }
+
+        .btn-large {
+            padding: 0.9rem 2rem;
+            font-size: 1rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            font-size: 0.85rem;
+            color: var(--accent-light);
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .hero-badge .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--accent-secondary);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+            animation: fadeInUp 0.6s ease 0.1s both;
+        }
+
+        .hero h1 .gradient {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin-bottom: 2.5rem;
+            animation: fadeInUp 0.6s ease 0.2s both;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 4rem;
+            animation: fadeInUp 0.6s ease 0.3s both;
+        }
+
+        .hero-cta .btn-secondary {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* App Preview */
+        .app-preview {
+            width: 100%;
+            max-width: 1000px;
+            animation: fadeInUp 0.8s ease 0.4s both;
+        }
+
+        .window-frame {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 
+                0 25px 80px rgba(0,0,0,0.5),
+                0 0 0 1px rgba(255,255,255,0.05);
+        }
+
+        .window-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .window-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .window-dot.red { background: #ff5f57; }
+        .window-dot.yellow { background: #febc2e; }
+        .window-dot.green { background: #28c840; }
+
+        .window-title {
+            margin-left: auto;
+            margin-right: auto;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .window-content {
+            display: grid;
+            grid-template-columns: 200px 1fr 280px;
+            min-height: 400px;
+        }
+
+        .sidebar {
+            background: var(--bg-tertiary);
+            border-right: 1px solid var(--border);
+            padding: 1rem;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .sidebar-item.active {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--accent-light);
+        }
+
+        .editor-area {
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.8;
+        }
+
+        .line-num {
+            color: var(--text-muted);
+            display: inline-block;
+            width: 2rem;
+            text-align: right;
+            margin-right: 1rem;
+            user-select: none;
+        }
+
+        .code-keyword { color: #c678dd; }
+        .code-func { color: #61afef; }
+        .code-string { color: #98c379; }
+        .code-comment { color: #5c6370; }
+        .code-type { color: #e5c07b; }
+
+        .agent-panel {
+            background: var(--bg-tertiary);
+            border-left: 1px solid var(--border);
+            padding: 1rem;
+        }
+
+        .agent-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .agent-avatar {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+
+        .agent-msg {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.75rem;
+            font-size: 0.8rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .agent-msg strong {
+            color: var(--text-primary);
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 0.5rem;
+        }
+
+        .typing-indicator span {
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-4px); opacity: 1; }
+        }
+
+        /* Section Styles */
+        section {
+            padding: 6rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-header h2 {
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Feature Cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--border-hover);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .feature-icon.code { background: rgba(99, 102, 241, 0.1); }
+        .feature-icon.git { background: rgba(16, 185, 129, 0.1); }
+        .feature-icon.agent { background: rgba(245, 158, 11, 0.1); }
+
+        .feature-card h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-top: 1.25rem;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-list li::before {
+            content: '→';
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Mode Sections */
+        .mode-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            margin-bottom: 6rem;
+        }
+
+        .mode-section.reverse {
+            direction: rtl;
+        }
+
+        .mode-section.reverse > * {
+            direction: ltr;
+        }
+
+        .mode-content h3 {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1rem;
+        }
+
+        .mode-content h3.code-tag { color: var(--accent); }
+        .mode-content h3.git-tag { color: var(--accent-secondary); }
+        .mode-content h3.agent-tag { color: var(--accent-tertiary); }
+
+        .mode-content h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            line-height: 1.3;
+        }
+
+        .mode-content p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .mode-visual {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .git-tree {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 2;
+        }
+
+        .git-tree .branch {
+            color: var(--accent-secondary);
+        }
+
+        .git-tree .commit {
+            color: var(--text-muted);
+        }
+
+        .git-tree .hash {
+            color: var(--accent-light);
+            background: rgba(99, 102, 241, 0.1);
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .git-tree .file {
+            color: var(--text-secondary);
+        }
+
+        /* Security Section */
+        .security-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .security-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .security-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .security-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin: 0 auto 1.25rem;
+        }
+
+        .security-card h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .security-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+
+        /* Download Section */
+        .download-section {
+            text-align: center;
+            background: linear-gradient(180deg, transparent, var(--accent-glow), transparent);
+            border-radius: 24px;
+            padding: 4rem 2rem;
+            margin: 4rem auto;
+        }
+
+        .download-section h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .download-section p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .download-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .download-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: all 0.2s;
+            min-width: 180px;
+        }
+
+        .download-btn:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .download-btn .platform {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .download-btn .version {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 3rem 2rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin: 0 1rem;
+            transition: color 0.2s;
+        }
+
+        footer a:hover {
+            color: var(--text-primary);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero-cta {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .hero-cta .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .window-content {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar, .agent-panel {
+                display: none;
+            }
+
+            .mode-section {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .mode-section.reverse {
+                direction: ltr;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .download-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <div class="logo-icon">CC</div>
+                Code Companion
+            </a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#modes">Modes</a>
+                <a href="#security">Security</a>
+                <a href="https://github.com/tezado/Code-companion-releases" class="btn btn-secondary">GitHub</a>
+                <a href="#download" class="btn btn-primary">Download</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-bg"></div>
+        
+        <div class="hero-badge">
+            <span class="dot"></span>
+            v2.0 Now Available
+        </div>
+        
+        <h1>
+            Code, Git & AI<br>
+            <span class="gradient">In One Native App</span>
+        </h1>
+        
+        <p class="hero-subtitle">
+            A full VS Code-style editor with real extensions, live Git visualization, 
+            and multi-agent AI sessions — all running locally on your machine.
+        </p>
+        
+        <div class="hero-cta">
+            <a href="#download" class="btn btn-primary btn-large">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Download Free
+            </a>
+            <a href="https://github.com/tezado/Code-companion-releases" class="btn btn-secondary btn-large">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                View on GitHub
+            </a>
+        </div>
+
+        <!-- App Preview Window -->
+        <div class="app-preview">
+            <div class="window-frame">
+                <div class="window-header">
+                    <div class="window-dot red"></div>
+                    <div class="window-dot yellow"></div>
+                    <div class="window-dot green"></div>
+                    <span class="window-title">Code Companion — layoutStore.ts</span>
+                </div>
+                <div class="window-content">
+                    <div class="sidebar">
+                        <div class="sidebar-item">📁 src</div>
+                        <div class="sidebar-item active">&nbsp;&nbsp;📄 layoutStore.ts</div>
+                        <div class="sidebar-item">&nbsp;&nbsp;📄 App.tsx</div>
+                        <div class="sidebar-item">&nbsp;&nbsp;📁 components</div>
+                        <div class="sidebar-item">&nbsp;&nbsp;&nbsp;&nbsp;📄 Editor.tsx</div>
+                        <div class="sidebar-item">&nbsp;&nbsp;&nbsp;&nbsp;📄 GitPanel.tsx</div>
+                        <div class="sidebar-item">📁 public</div>
+                        <div class="sidebar-item">📄 package.json</div>
+                    </div>
+                    <div class="editor-area">
+                        <div><span class="line-num">1</span><span class="code-keyword">import</span> { create } <span class="code-keyword">from</span> <span class="code-string">'zustand'</span>;</div>
+                        <div><span class="line-num">2</span><span class="code-keyword">import</span> { persist } <span class="code-keyword">from</span> <span class="code-string">'zustand/middleware'</span>;</div>
+                        <div><span class="line-num">3</span></div>
+                        <div><span class="line-num">4</span><span class="code-keyword">interface</span> <span class="code-type">LayoutState</span> {</div>
+                        <div><span class="line-num">5</span>&nbsp;&nbsp;mode: <span class="code-string">'code'</span> | <span class="code-string">'git'</span> | <span class="code-string">'agent'</span>;</div>
+                        <div><span class="line-num">6</span>&nbsp;&nbsp;sidebarOpen: <span class="code-type">boolean</span>;</div>
+                        <div><span class="line-num">7</span>&nbsp;&nbsp;panelSize: <span class="code-type">number</span>;</div>
+                        <div><span class="line-num">8</span>}</div>
+                        <div><span class="line-num">9</span></div>
+                        <div><span class="line-num">10</span><span class="code-keyword">export const</span> <span class="code-func">useLayoutStore</span> = <span class="code-func">create</span>&lt;<span class="code-type">LayoutState</span>&gt;()(</div>
+                        <div><span class="line-num">11</span>&nbsp;&nbsp;<span class="code-func">persist</span>(</div>
+                        <div><span class="line-num">12</span>&nbsp;&nbsp;&nbsp;&nbsp;(set) => ({</div>
+                        <div><span class="line-num">13</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mode: <span class="code-string">'code'</span>,</div>
+                        <div><span class="line-num">14</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sidebarOpen: <span class="code-type">true</span>,</div>
+                        <div><span class="line-num">15</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;panelSize: <span class="code-type">280</span>,</div>
+                        <div><span class="line-num">16</span>&nbsp;&nbsp;&nbsp;&nbsp;}),</div>
+                        <div><span class="line-num">17</span>&nbsp;&nbsp;&nbsp;&nbsp;{ name: <span class="code-string">'cc-layout'</span> }</div>
+                        <div><span class="line-num">18</span>&nbsp;&nbsp;)</div>
+                        <div><span class="line-num">19</span>);</div>
+                    </div>
+                    <div class="agent-panel">
+                        <div class="agent-header">
+                            <div class="agent-avatar">🤖</div>
+                            <span style="font-size: 0.85rem; font-weight: 600;">Claude</span>
+                            <span style="margin-left: auto; font-size: 0.75rem; color: var(--text-muted);">● Live</span>
+                        </div>
+                        <div class="agent-msg">
+                            <strong>Fixed the type error</strong> in <code>layoutStore.ts</code>. The <code>panelSize</code> was typed as string instead of number.
+                        </div>
+                        <div class="agent-msg">
+                            <strong>3 files modified</strong><br>
+                            <span style="font-family: monospace; font-size: 0.75rem;">+24 −8 lines</span>
+                        </div>
+                        <div class="typing-indicator">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Overview -->
+    <section id="features">
+        <div class="section-header animate-on-scroll">
+            <h2>One app, three ways to work</h2>
+            <p>Seamlessly switch between coding, version control, and AI assistance without leaving your workspace.</p>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card animate-on-scroll">
+                <div class="feature-icon code">💻</div>
+                <h3>Code Mode</h3>
+                <p>A full VS Code-style editor with real extensions. Multi-pane Monaco editor, quick-open, integrated terminal, and a sandboxed extension host.</p>
+                <ul class="feature-list">
+                    <li>Real extension host — LSP, debugging, tasks</li>
+                    <li>TextMate grammars & themes</li>
+                    <li>Open any local folder</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card animate-on-scroll">
+                <div class="feature-icon git">🌳</div>
+                <h3>Git Mode</h3>
+                <p>An animated, real-time repo tree that turns branches and merges into something you watch happen, not infer from logs.</p>
+                <ul class="feature-list">
+                    <li>Live filesystem-watcher-driven tree</li>
+                    <li>VS Code-style 3-way merge editor</li>
+                    <li>One-click repo cloning</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card animate-on-scroll">
+                <div class="feature-icon agent">🤖</div>
+                <h3>Agent Mode</h3>
+                <p>Run multiple Claude Code sessions side by side with live token tracking and file-edit hooks.</p>
+                <ul class="feature-list">
+                    <li>Up to 3 concurrent sessions</li>
+                    <li>Live token usage tracking</li>
+                    <li>Animated activity indicators</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Detailed Modes -->
+    <section id="modes">
+        <div class="section-header animate-on-scroll">
+            <h2>Built for how you actually work</h2>
+            <p>Every mode is designed to feel native, not bolted-on.</p>
+        </div>
+
+        <!-- Code Mode Detail -->
+        <div class="mode-section animate-on-scroll">
+            <div class="mode-content">
+                <h3 class="code-tag">Flagship Feature</h3>
+                <h2>A full editor, not a diff viewer</h2>
+                <p>Code Companion isn't just a wrapper around GitHub's API. It's a real, multi-pane Monaco editor with a sandboxed VS Code extension host underneath — so the extensions you already use just work.</p>
+                <ul class="feature-list">
+                    <li>Multi-pane Monaco editor with quick-open</li>
+                    <li>Real extension host — LSP, debugging, tasks, SCM</li>
+                    <li>TextMate grammars, themes & snippets out of the box</li>
+                    <li>Open any local folder — no GitHub login required</li>
+                </ul>
+            </div>
+            <div class="mode-visual">
+                <div class="window-frame" style="box-shadow: none; border: none;">
+                    <div class="window-header" style="background: transparent; border-bottom: 1px solid var(--border);">
+                        <div class="window-dot red"></div>
+                        <div class="window-dot yellow"></div>
+                        <div class="window-dot green"></div>
+                        <span class="window-title">App.tsx — Claude Extension Active</span>
+                    </div>
+                    <div style="padding: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; line-height: 1.8;">
+                        <div><span style="color: var(--text-muted);">1</span>  <span style="color: #c678dd;">import</span> React <span style="color: #c678dd;">from</span> <span style="color: #98c379;">'react'</span>;</div>
+                        <div><span style="color: var(--text-muted);">2</span>  <span style="color: #c678dd;">import</span> { Editor } <span style="color: #c678dd;">from</span> <span style="color: #98c379;">'@monaco-editor/react'</span>;</div>
+                        <div><span style="color: var(--text-muted);">3</span></div>
+                        <div><span style="color: var(--text-muted);">4</span>  <span style="color: #5c6370;">// Claude extension is running</span></div>
+                        <div><span style="color: var(--text-muted);">5</span>  <span style="color: #c678dd;">const</span> <span style="color: #61afef;">App</span> = () => {</div>
+                        <div><span style="color: var(--text-muted);">6</span>    <span style="color: #c678dd;">return</span> (</div>
+                        <div><span style="color: var(--text-muted);">7</span>      &lt;<span style="color: #e5c07b;">Editor</span></div>
+                        <div><span style="color: var(--text-muted);">8</span>        height=<span style="color: #98c379;">"100vh"</span></div>
+                        <div><span style="color: var(--text-muted);">9</span>        theme=<span style="color: #98c379;">"vs-dark"</span></div>
+                        <div><span style="color: var(--text-muted);">10</span>        language=<span style="color: #98c379;">"typescript"</span></div>
+                        <div><span style="color: var(--text-muted);">11</span>      /&gt;</div>
+                        <div><span style="color: var(--text-muted);">12</span>    );</div>
+                        <div><span style="color: var(--text-muted);">13</span>  };</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Git Mode Detail -->
+        <div class="mode-section reverse animate-on-scroll">
+            <div class="mode-content">
+                <h3 class="git-tag">Core</h3>
+                <h2>Git you can actually see</h2>
+                <p>Most Git UIs show you a log. Code Companion shows you a living tree — branches grow, merges converge, and stashes float in real-time as you work.</p>
+                <ul class="feature-list">
+                    <li>Live, filesystem-watcher-driven repo tree</li>
+                    <li>Branch, merge, stash, undo & diff — all local</li>
+                    <li>VS Code-style 3-way merge editor</li>
+                    <li>One-click repo cloning</li>
+                </ul>
+            </div>
+            <div class="mode-visual">
+                <div class="git-tree">
+                    <div><span class="branch">● main</span> <span class="hash">6e7f108</span> <span class="commit">layoutStore.ts</span></div>
+                    <div>&nbsp;&nbsp;│</div>
+                    <div>&nbsp;&nbsp;├─ <span class="branch">● feature/code-mode</span> <span class="hash">a3f9d2c</span></div>
+                    <div>&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;│</div>
+                    <div>&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├─ <span class="file">+ App.tsx</span></div>
+                    <div>&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├─ <span class="file">+ Editor.tsx</span></div>
+                    <div>&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└─ <span class="file">~ layoutStore.ts</span></div>
+                    <div>&nbsp;&nbsp;│</div>
+                    <div>&nbsp;&nbsp;├─ <span class="branch">● merge</span> <span class="hash">3-way resolved</span></div>
+                    <div>&nbsp;&nbsp;│</div>
+                    <div>&nbsp;&nbsp;└─ <span class="branch">○ stash@{0}</span> <span class="commit">WIP on main</span></div>
+                </div>
+                <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                    <div style="display: flex; gap: 1rem; font-size: 0.8rem;">
+                        <div style="flex: 1; padding: 0.75rem; background: rgba(16,185,129,0.1); border-radius: 8px; border: 1px solid rgba(16,185,129,0.2);">
+                            <div style="color: var(--accent-secondary); font-weight: 600; margin-bottom: 0.25rem;">Ours</div>
+                            <div style="color: var(--text-muted); font-size: 0.75rem;">feature/code-mode</div>
+                        </div>
+                        <div style="flex: 1; padding: 0.75rem; background: rgba(245,158,11,0.1); border-radius: 8px; border: 1px solid rgba(245,158,11,0.2);">
+                            <div style="color: var(--accent-tertiary); font-weight: 600; margin-bottom: 0.25rem;">Theirs</div>
+                            <div style="color: var(--text-muted); font-size: 0.75rem;">main</div>
+                        </div>
+                        <div style="flex: 1; padding: 0.75rem; background: rgba(99,102,241,0.1); border-radius: 8px; border: 1px solid rgba(99,102,241,0.2);">
+                            <div style="color: var(--accent); font-weight: 600; margin-bottom: 0.25rem;">Both</div>
+                            <div style="color: var(--text-muted); font-size: 0.75rem;">Merged result</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agent Mode Detail -->
+        <div class="mode-section animate-on-scroll">
+            <div class="mode-content">
+                <h3 class="agent-tag">AI-Native</h3>
+                <h2>Run your agents, watch them work</h2>
+                <p>A docked panel runs multiple Claude Code sessions side by side. Live token tracking and file-edit hooks mean you always know what changed and how much it cost.</p>
+                <ul class="feature-list">
+                    <li>Up to 3 concurrent Claude CLI sessions per repo</li>
+                    <li>Live token usage tracking with cost estimates</li>
+                    <li>File-edit hooks tied back into the editor</li>
+                    <li>Animated agent-activity indicators</li>
+                </ul>
+            </div>
+            <div class="mode-visual">
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div style="background: var(--bg-primary); border: 1px solid var(--border); border-radius: 10px; padding: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <div style="width: 8px; height: 8px; background: var(--accent-secondary); border-radius: 50%; animation: pulse 2s infinite;"></div>
+                                <span style="font-size: 0.85rem; font-weight: 600;">Session 1</span>
+                            </div>
+                            <span style="font-family: monospace; font-size: 0.75rem; color: var(--text-muted);">12.4k tok</span>
+                        </div>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 0.5rem; border-radius: 6px;">
+                            $ claude "fix tests in auth module"
+                        </div>
+                    </div>
+                    <div style="background: var(--bg-primary); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; opacity: 0.7;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <div style="width: 8px; height: 8px; background: var(--text-muted); border-radius: 50%;"></div>
+                                <span style="font-size: 0.85rem; font-weight: 600;">Session 2</span>
+                            </div>
+                            <span style="font-family: monospace; font-size: 0.75rem; color: var(--text-muted);">Idle</span>
+                        </div>
+                    </div>
+                    <div style="background: var(--bg-primary); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; opacity: 0.7;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <div style="width: 8px; height: 8px; background: var(--text-muted); border-radius: 50%;"></div>
+                                <span style="font-size: 0.85rem; font-weight: 600;">Session 3</span>
+                            </div>
+                            <span style="font-family: monospace; font-size: 0.75rem; color: var(--text-muted);">Idle</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Everything Else -->
+    <section>
+        <div class="section-header animate-on-scroll">
+            <h2>Everything else, built in</h2>
+            <p>The features that support all three modes and make Code Companion feel like an app, not a tool.</p>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card animate-on-scroll">
+                <div class="feature-icon" style="background: rgba(236, 72, 153, 0.1);">🔔</div>
+                <h3>Webhook Push Notifications</h3>
+                <p>Get a native desktop alert the instant a watched branch updates, with the author and commit message ready to read.</p>
+            </div>
+            
+            <div class="feature-card animate-on-scroll">
+                <div class="feature-icon" style="background: rgba(59, 130, 246, 0.1);">🔄</div>
+                <h3>Pull Requests & Teams</h3>
+                <p>Browse and open PRs, manage collaborators and teams, all without leaving the app.</p>
+            </div>
+            
+            <div class="feature-card animate-on-scroll">
+                <div class="feature-icon" style="background: rgba(139, 92, 246, 0.1);">✨</div>
+                <h3>AI-Assisted Commits</h3>
+                <p>Get a Gemini-powered commit message drafted straight from your staged changes — ready to edit, or send as-is.</p>
+            </div>
+            
+            <div class="feature-card animate-on-scroll">
+                <div class="feature-icon" style="background: rgba(16, 185, 129, 0.1);">🔐</div>
+                <h3>Seamless GitHub Sign-In</h3>
+                <p>Device-flow authentication keeps your GitHub identity in sync automatically — no manual setup, no copy-pasted tokens.</p>
+            </div>
+            
+            <div class="feature-card animate-on-scroll">
+                <div class="feature-icon" style="background: rgba(245, 158, 11, 0.1);">⬆️</div>
+                <h3>Auto-Updates</h3>
+                <p>Code Companion checks for and installs new releases in the background, so you're never running a stale build.</p>
+            </div>
+            
+            <div class="feature-card animate-on-scroll">
+                <div class="feature-icon" style="background: rgba(99, 102, 241, 0.1);">🌧️</div>
+                <h3>Tray, Launch & Ambience</h3>
+                <p>Lives in your system tray with launch-on-login, plus optional rain and snow effects for the workspace.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Security Section -->
+    <section id="security">
+        <div class="section-header animate-on-scroll">
+            <h2>Enterprise-grade security, locally</h2>
+            <p>Your code and credentials never leave your machine without your permission. Multiple layers of defense keep your secrets safe.</p>
+        </div>
+        
+        <div class="security-grid">
+            <div class="security-card animate-on-scroll">
+                <div class="security-icon">🔒</div>
+                <h3>Native Credential Vault</h3>
+                <p>Before a key ever touches your disk, it passes through your OS's own secure credential store. Never saved in plain text.</p>
+            </div>
+            
+            <div class="security-card animate-on-scroll">
+                <div class="security-icon">🛡️</div>
+                <h3>Device-Locked Encryption</h3>
+                <p>Military-grade fallback encryption using a unique key derived from your own machine. Copy the file elsewhere — it won't open.</p>
+            </div>
+            
+            <div class="security-card animate-on-scroll">
+                <div class="security-icon">🔍</div>
+                <h3>Pre-Commit Secret Scanning</h3>
+                <p>Every commit is scanned first. If a password or API key slips in, the commit is blocked and flagged before it reaches GitHub.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section id="download" class="download-section">
+        <h2 class="animate-on-scroll">Ready to try Code Companion?</h2>
+        <p class="animate-on-scroll">Free, open-source, and runs entirely on your machine.</p>
+        
+        <div class="download-buttons animate-on-scroll">
+            <a href="#" class="download-btn">
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                <div>
+                    <div class="platform">macOS</div>
+                    <div class="version">Download for Mac</div>
+                </div>
+            </a>
+            <a href="#" class="download-btn">
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M3 5h18v14H3V5zm2 2v10h14V7H5z"/></svg>
+                <div>
+                    <div class="platform">Windows</div>
+                    <div class="version">Download for Windows</div>
+                </div>
+            </a>
+            <a href="#" class="download-btn">
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                <div>
+                    <div class="platform">Linux</div>
+                    <div class="version">Download for Linux</div>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div style="margin-bottom: 1rem;">
+            <a href="https://github.com/tezado/Code-companion-releases">GitHub</a>
+            <a href="#download">Releases</a>
+            <a href="#features">Documentation</a>
+            <a href="#">Issues</a>
+        </div>
+        <p> Code Companion. Open source under MIT License.</p>
+        <p style="margin-top: 0.5rem; font-size: 0.8rem;">Built with ❤️ by <a href="https://github.com/tezado">@tezado</a></p>
+    </footer>
+
+    <script>
+        // Navbar scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.animate-on-scroll').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Smooth scroll for nav links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
